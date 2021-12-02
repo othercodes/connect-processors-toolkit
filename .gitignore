@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Jetbrains files
+.idea
+
+# no git files
+*nogit*
