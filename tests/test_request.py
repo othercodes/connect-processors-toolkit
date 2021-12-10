@@ -1,4 +1,4 @@
-from connect.toolkit.requests import AssetRequestBuilder, TierConfigRequestBuilder, RequestBuilder
+from connect.toolkit.requests import AssetBuilder, TierConfigBuilder, RequestBuilder
 
 
 def test_request_should_build_successfully_a_valid_requests():
@@ -24,7 +24,7 @@ def test_request_should_build_successfully_a_valid_requests():
 
 def test_asset_request_should_build_successfully_a_valid_asset_request():
     request = (
-        AssetRequestBuilder()
+        AssetBuilder()
             .with_asset_id('AS-0000-0000-1000')
             .with_asset_status('active')
             .with_asset_product('PRD-000-000-100', 'disabled')
@@ -86,7 +86,7 @@ def test_asset_request_should_build_successfully_a_valid_asset_request():
 
 def __test_request_builder_should_build_successfully_a_valid_tier_config_request():
     request = (
-        TierConfigRequestBuilder()
+        TierConfigBuilder()
             .with_tier_configuration_id('TC-000-000-000')
             .with_tier_configuration_status('active')
             .with_tier_configuration_marketplace('MP-12345')

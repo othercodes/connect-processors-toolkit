@@ -129,18 +129,21 @@ class RequestBuilder:
         return self
 
 
-class AssetRequestBuilder(RequestBuilder):
+class AssetBuilder(RequestBuilder):
+    def asset(self) -> dict:
+        return self._request.get('asset', {})
+
     def asset_id(self) -> Optional[str]:
         return self._request.get('asset', {}).get('id')
 
-    def with_asset_id(self, asset_id: str) -> AssetRequestBuilder:
+    def with_asset_id(self, asset_id: str) -> AssetBuilder:
         self._request = merge(self._request, {'asset': {'id': asset_id}})
         return self
 
     def asset_status(self) -> Optional[str]:
         return self._request.get('asset', {}).get('status')
 
-    def with_asset_status(self, asset_status: str) -> AssetRequestBuilder:
+    def with_asset_status(self, asset_status: str) -> AssetBuilder:
         self._request = merge(self._request, {'asset': {'status': asset_status}})
         return self
 
@@ -155,7 +158,7 @@ class AssetRequestBuilder(RequestBuilder):
 
         return product if key is None else product.get(key, default)
 
-    def with_asset_product(self, product_id: str, status: str = 'published') -> AssetRequestBuilder:
+    def with_asset_product(self, product_id: str, status: str = 'published') -> AssetBuilder:
         self._request = merge(self._request, {'asset': {'product': {'id': product_id, 'status': status}}})
         return self
 
@@ -170,7 +173,7 @@ class AssetRequestBuilder(RequestBuilder):
 
         return marketplace if key is None else marketplace.get(key, default)
 
-    def with_asset_marketplace(self, marketplace_id: str) -> AssetRequestBuilder:
+    def with_asset_marketplace(self, marketplace_id: str) -> AssetBuilder:
         self._request = merge(self._request, {'asset': {'marketplace': {'id': marketplace_id}}})
         return self
 
@@ -185,7 +188,7 @@ class AssetRequestBuilder(RequestBuilder):
 
         return connection if key is None else connection.get(key, default)
 
-    def with_asset_connection(self, connection_id: str, connection_type: str) -> AssetRequestBuilder:
+    def with_asset_connection(self, connection_id: str, connection_type: str) -> AssetBuilder:
         self._request = merge(self._request, {'asset': {'connection': {
             'id': connection_id,
             'type': connection_type,
@@ -204,7 +207,7 @@ class AssetRequestBuilder(RequestBuilder):
 
         return tier if key is None else tier.get(key, default)
 
-    def with_asset_tier(self, tier_name: str, tier: Union[str, dict]) -> AssetRequestBuilder:
+    def with_asset_tier(self, tier_name: str, tier: Union[str, dict]) -> AssetBuilder:
         if isinstance(tier, str):
             self._request.get('asset', {}).get('tiers', {}).get(tier_name, {}).clear()
             tier = _make_tier(tier_name) if tier == 'random' else {'id': tier}
@@ -219,7 +222,7 @@ class AssetRequestBuilder(RequestBuilder):
     ) -> Optional[Union[str, dict]]:
         return self.asset_tier('customer', key, default)
 
-    def with_asset_tier_customer(self, customer: Union[str, dict]) -> AssetRequestBuilder:
+    def with_asset_tier_customer(self, customer: Union[str, dict]) -> AssetBuilder:
         return self.with_asset_tier('customer', customer)
 
     def asset_tier_tier1(
@@ -229,7 +232,7 @@ class AssetRequestBuilder(RequestBuilder):
     ) -> Optional[Union[str, dict]]:
         return self.asset_tier('tier1', key, default)
 
-    def with_asset_tier_tier1(self, tier1: Union[str, dict]) -> AssetRequestBuilder:
+    def with_asset_tier_tier1(self, tier1: Union[str, dict]) -> AssetBuilder:
         return self.with_asset_tier('tier1', tier1)
 
     def asset_tier_tier2(
@@ -239,7 +242,7 @@ class AssetRequestBuilder(RequestBuilder):
     ) -> Optional[Union[str, dict]]:
         return self.asset_tier('tier2', key, default)
 
-    def with_asset_tier_tier2(self, tier2: Union[str, dict]) -> AssetRequestBuilder:
+    def with_asset_tier_tier2(self, tier2: Union[str, dict]) -> AssetBuilder:
         return self.with_asset_tier('tier2', tier2)
 
     def asset_params(self) -> List[dict]:
@@ -265,7 +268,7 @@ class AssetRequestBuilder(RequestBuilder):
             value_type: Optional[str] = None,
             title: Optional[str] = None,
             description: Optional[str] = None,
-    ) -> AssetRequestBuilder:
+    ) -> AssetBuilder:
         try:
             param = self.asset_param_by_id(param_id)
         except MissingParameterError:
@@ -307,7 +310,7 @@ class AssetRequestBuilder(RequestBuilder):
             period: Optional[str] = None,
             unit: Optional[str] = None,
             display_name: Optional[str] = None,
-    ) -> AssetRequestBuilder:
+    ) -> AssetBuilder:
         try:
             item = self.asset_item_by_id(item_id)
         except MissingItemError:
@@ -354,7 +357,7 @@ class AssetRequestBuilder(RequestBuilder):
             description: Optional[str] = None,
             scope: Optional[str] = None,
             phase: Optional[str] = None,
-    ) -> AssetRequestBuilder:
+    ) -> AssetBuilder:
         item = self.asset_item_by_id(item_id)
         param = find_by_id(item.get('params', []), param_id)
         if param is None:
@@ -396,7 +399,7 @@ class AssetRequestBuilder(RequestBuilder):
             name: Optional[str] = None,
             title: Optional[str] = None,
             description: Optional[str] = None,
-    ) -> AssetRequestBuilder:
+    ) -> AssetBuilder:
         try:
             param = self.asset_configuration_param_by_id(param_id)
         except MissingParameterError:
@@ -414,31 +417,31 @@ class AssetRequestBuilder(RequestBuilder):
         return self
 
 
-class TierConfigRequestBuilder(RequestBuilder):
-    def with_tier_configuration_id(self, tier_configuration_id: str) -> TierConfigRequestBuilder:
+class TierConfigBuilder(RequestBuilder):
+    def with_tier_configuration_id(self, tier_configuration_id: str) -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'id': tier_configuration_id}})
         return self
 
-    def with_tier_configuration_status(self, tier_configuration_status: str) -> TierConfigRequestBuilder:
+    def with_tier_configuration_status(self, tier_configuration_status: str) -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'status': tier_configuration_status}})
         return self
 
-    def with_tier_configuration_product(self, product_id: str, status: str = 'published') -> TierConfigRequestBuilder:
+    def with_tier_configuration_product(self, product_id: str, status: str = 'published') -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'product': {'id': product_id, 'status': status}}})
         return self
 
-    def with_tier_configuration_marketplace(self, marketplace_id: str) -> TierConfigRequestBuilder:
+    def with_tier_configuration_marketplace(self, marketplace_id: str) -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'marketplace': {'id': marketplace_id}}})
         return self
 
-    def with_tier_configuration_connection(self, connection_id: str, connection_type: str) -> TierConfigRequestBuilder:
+    def with_tier_configuration_connection(self, connection_id: str, connection_type: str) -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'connection': {
             'id': connection_id,
             'type': connection_type,
         }}})
         return self
 
-    def with_tier_configuration_account(self, account: str = 'random') -> TierConfigRequestBuilder:
+    def with_tier_configuration_account(self, account: str = 'random') -> TierConfigBuilder:
         if isinstance(account, str):
             self._request.get('configuration', {}).get('account', {}).clear()
             account = _make_tier('reseller') if account == 'random' else {'id': account}
@@ -446,7 +449,7 @@ class TierConfigRequestBuilder(RequestBuilder):
         self._request = merge(self._request, {'configuration': {'account': account}})
         return self
 
-    def with_tier_configuration_tier_level(self, level: int) -> TierConfigRequestBuilder:
+    def with_tier_configuration_tier_level(self, level: int) -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'tier_level': level}})
         return self
 
@@ -456,7 +459,7 @@ class TierConfigRequestBuilder(RequestBuilder):
             value: Optional[Union[str, dict]] = None,
             value_error: Optional[str] = None,
             value_type: str = 'text',
-    ) -> TierConfigRequestBuilder:
+    ) -> TierConfigBuilder:
         locations = [
             (
                 lambda request: request.get('configuration', {}).get('params', []),
@@ -491,7 +494,7 @@ class TierConfigRequestBuilder(RequestBuilder):
             value: Optional[Union[str, dict]] = None,
             value_error: Optional[str] = None,
             value_type: str = 'text',
-    ) -> TierConfigRequestBuilder:
+    ) -> TierConfigBuilder:
         param = find_by_id(
             self._request.get('configuration', {}).get('configuration', {}).get('params', []),
             param_id,
