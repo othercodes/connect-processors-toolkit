@@ -84,7 +84,7 @@ def test_asset_request_should_build_successfully_a_valid_asset_request():
     assert request.asset_configuration_param_by_id('AS_CFG_ID_001', 'value_error') == 'Cfg error value updated'
 
 
-def __test_request_builder_should_build_successfully_a_valid_tier_config_request():
+def test_request_builder_should_build_successfully_a_valid_tier_config_request():
     request = (
         TierConfigBuilder()
             .with_tier_configuration_id('TC-000-000-000')
@@ -102,40 +102,40 @@ def __test_request_builder_should_build_successfully_a_valid_tier_config_request
             .with_tier_configuration_param('PARAM_ID_001', 'VALUE_001_UPDATED')
     )
 
-    assert request['configuration']['id'] == 'TC-000-000-000'
-    assert request['configuration']['status'] == 'active'
+    assert request.tier_configuration_id() == 'TC-000-000-000'
+    assert request.tier_configuration_status() == 'active'
 
-    assert request['configuration']['marketplace']['id'] == 'MP-12345'
+    assert request.tier_configuration_marketplace('id') == 'MP-12345'
 
-    assert request['configuration']['connection']['id'] == 'CT-0000-0000-0000'
-    assert request['configuration']['connection']['type'] == 'test'
+    assert request.tier_configuration_connection('id') == 'CT-0000-0000-0000'
+    assert request.tier_configuration_connection('type') == 'test'
 
-    assert request['configuration']['configuration']['params'][0]['id'] == 'P_CFG_CFG_ID'
-    assert request['configuration']['configuration']['params'][0]['value'] == 'CFG_VALUE_UPDATED'
+    assert request.tier_configuration_configuration_params('P_CFG_CFG_ID', 'id') == 'P_CFG_CFG_ID'
+    assert request.tier_configuration_configuration_params('P_CFG_CFG_ID', 'value') == 'CFG_VALUE_UPDATED'
 
-    assert request['configuration']['product']['id'] == 'PRD-000-000-100'
-    assert request['configuration']['product']['status'] == 'disabled'
+    assert request.tier_configuration_product('id') == 'PRD-000-000-100'
+    assert request.tier_configuration_product('status') == 'disabled'
 
-    assert request['configuration']['account']['id'] == 'TA-0000-0000-1000'
+    assert request.tier_configuration_account('id') == 'TA-0000-0000-1000'
 
-    assert request['configuration']['tier_level'] == 2
+    assert request.tier_configuration_tier_level() == 2
 
-    assert request['configuration']['params'][0]['id'] == 'PARAM_ID_001'
-    assert request['configuration']['params'][0]['value'] == 'VALUE_001_UPDATED'
+    assert request.tier_configuration_params('PARAM_ID_001', 'id') == 'PARAM_ID_001'
+    assert request.tier_configuration_params('PARAM_ID_001', 'value') == 'VALUE_001_UPDATED'
 
-    assert request['configuration']['params'][1]['id'] == 'PARAM_ID_002'
-    assert request['configuration']['params'][1]['value'] == 'VALUE_002'
+    assert request.tier_configuration_params('PARAM_ID_002', 'id') == 'PARAM_ID_002'
+    assert request.tier_configuration_params('PARAM_ID_002', 'value') == 'VALUE_002'
 
-    assert request['configuration']['params'][2]['id'] == 'PARAM_ID_003'
-    assert request['configuration']['params'][2]['value'] == ''
-    assert request['configuration']['params'][2]['value_error'] == 'Some value error on configuration'
+    assert request.tier_configuration_params('PARAM_ID_003', 'id') == 'PARAM_ID_003'
+    assert request.tier_configuration_params('PARAM_ID_003', 'value') == ''
+    assert request.tier_configuration_params('PARAM_ID_003', 'value_error') == 'Some value error on configuration'
 
-    assert request['params'][0]['id'] == 'PARAM_ID_001'
-    assert request['params'][0]['value'] == 'VALUE_001_UPDATED'
+    assert request.tier_params('PARAM_ID_001', 'id') == 'PARAM_ID_001'
+    assert request.tier_params('PARAM_ID_001', 'value') == 'VALUE_001_UPDATED'
 
-    assert request['params'][1]['id'] == 'PARAM_ID_002'
-    assert request['params'][1]['value'] == 'VALUE_002'
+    assert request.tier_params('PARAM_ID_002', 'id') == 'PARAM_ID_002'
+    assert request.tier_params('PARAM_ID_002', 'value') == 'VALUE_002'
 
-    assert request['params'][2]['id'] == 'PARAM_ID_003'
-    assert request['params'][2]['value'] == ''
-    assert request['params'][2]['value_error'] == 'Some value error on configuration'
+    assert request.tier_params('PARAM_ID_003', 'id') == 'PARAM_ID_003'
+    assert request.tier_params('PARAM_ID_003', 'value') == ''
+    assert request.tier_params('PARAM_ID_003', 'value_error') == 'Some value error on configuration'

@@ -418,13 +418,30 @@ class AssetBuilder(RequestBuilder):
 
 
 class TierConfigBuilder(RequestBuilder):
+    def tier_configuration_id(self) -> Optional[str]:
+        return self._request.get('configuration', {}).get('id')
+
     def with_tier_configuration_id(self, tier_configuration_id: str) -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'id': tier_configuration_id}})
         return self
 
+    def tier_configuration_status(self) -> Optional[str]:
+        return self._request.get('configuration', {}).get('status')
+
     def with_tier_configuration_status(self, tier_configuration_status: str) -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'status': tier_configuration_status}})
         return self
+
+    def tier_configuration_product(
+            self,
+            key: Optional[str] = None,
+            default: Optional[Any] = None,
+    ) -> Optional[dict]:
+        product = self._request.get('configuration', {}).get('product')
+        if product is None:
+            return None
+
+        return product if key is None else product.get(key, default)
 
     def with_tier_configuration_product(self, product_id: str, status: str = 'published') -> TierConfigBuilder:
         self._request = merge(self._request, {'configuration': {'product': {'id': product_id, 'status': status}}})
