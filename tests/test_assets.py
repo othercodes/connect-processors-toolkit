@@ -27,6 +27,8 @@ def test_asset_request_should_build_successfully_a_valid_asset_request():
         AssetBuilder()
             .with_asset_id('AS-0000-0000-1000')
             .with_asset_status('active')
+            .with_asset_external_id('123456789')
+            .with_asset_external_uid('19bddc10-f58c-42ac-8cc0-a6bd8705eacc')
             .with_asset_product('PRD-000-000-100', 'disabled')
             .with_asset_marketplace('MP-12345')
             .with_asset_connection('CT-0000-0000-0000', 'test')
@@ -47,6 +49,9 @@ def test_asset_request_should_build_successfully_a_valid_asset_request():
 
     assert request.asset_id() == 'AS-0000-0000-1000'
     assert request.asset_status() == 'active'
+
+    assert request.asset_external_id() == '123456789'
+    assert request.asset_external_uid() == '19bddc10-f58c-42ac-8cc0-a6bd8705eacc'
 
     assert request.asset_product('id') == 'PRD-000-000-100'
     assert request.asset_product('status') == 'disabled'

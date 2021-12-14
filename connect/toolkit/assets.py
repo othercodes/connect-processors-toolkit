@@ -26,6 +26,20 @@ class AssetBuilder:
         with_member(self._asset, 'id', asset_id)
         return self
 
+    def asset_external_id(self) -> Optional[str]:
+        return self._asset.get('external_id')
+
+    def with_asset_external_id(self, asset_external_id: str) -> AssetBuilder:
+        with_member(self._asset, 'external_id', asset_external_id)
+        return self
+
+    def asset_external_uid(self) -> Optional[str]:
+        return self._asset.get('external_uid')
+
+    def with_asset_external_uid(self, asset_external_uid: str) -> AssetBuilder:
+        with_member(self._asset, 'external_uid', asset_external_uid)
+        return self
+
     def asset_status(self) -> Optional[str]:
         return self._asset.get('status')
 

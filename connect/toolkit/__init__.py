@@ -48,11 +48,7 @@ def without_member(dictionary: dict, member_id: str) -> dict:
     return dictionary
 
 
-def _param_members(
-        param: dict,
-        value: Optional[Union[str, dict]] = None,
-        value_error: Optional[str] = None,
-) -> dict:
+def _param_members(param: dict, value: Optional[Union[str, dict]] = None, value_error: Optional[str] = None) -> dict:
     if isinstance(value, dict):
         key = 'structured_value'
         new_value = param.get(key, {})
