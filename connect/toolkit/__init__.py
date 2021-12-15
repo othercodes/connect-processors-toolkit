@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, List, Optional, Union
 
 
-def find_by_id(elements: List, element_id: str, default: Optional[dict] = None) -> dict:
+def find_by_id(elements: List[dict], element_id: str, default: Optional[dict] = None) -> Optional[dict]:
     """
     Searches for a parameter/item with the given ``id`` within the ``list``.
 

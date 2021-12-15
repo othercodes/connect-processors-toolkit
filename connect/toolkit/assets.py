@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from connect.toolkit import _param_members, find_by_id, make_tier, with_member
 from connect.toolkit.exceptions import MissingItemError, MissingParameterError
@@ -51,7 +51,7 @@ class AssetBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[dict]:
+    ) -> Optional[Any]:
         product = self._asset.get('product')
         if product is None:
             return None
@@ -69,7 +69,7 @@ class AssetBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[dict]:
+    ) -> Optional[Any]:
         marketplace = self._asset.get('marketplace')
         if marketplace is None:
             return None
@@ -87,7 +87,7 @@ class AssetBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[dict]:
+    ) -> Optional[Any]:
         connection = self._asset.get('connection')
         if connection is None:
             return None
@@ -106,7 +106,7 @@ class AssetBuilder:
             tier_name: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[str, dict]]:
+    ) -> Optional[Any]:
         tier = self._asset.get('tiers', {}).get(tier_name)
         if tier is None:
             return None
@@ -157,7 +157,7 @@ class AssetBuilder:
     def with_asset_tier_tier2(self, tier2: Union[str, dict]) -> AssetBuilder:
         return self.with_asset_tier('tier2', tier2)
 
-    def asset_params(self) -> List[dict]:
+    def asset_params(self) -> List[Dict[Any, Any]]:
         return self._asset.get('params', [])
 
     def asset_param_by_id(
@@ -165,7 +165,7 @@ class AssetBuilder:
             param_id: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         parameter = find_by_id(self.asset_params(), param_id)
         if parameter is None:
             raise MissingParameterError(f'Missing parameter {param_id}')
@@ -201,7 +201,7 @@ class AssetBuilder:
         param.update({k: v for k, v in members.items() if v is not None})
         return self
 
-    def asset_items(self) -> List[dict]:
+    def asset_items(self) -> List[Dict[Any, Any]]:
         return self._asset.get('items', [])
 
     def asset_item_by_id(
@@ -209,8 +209,8 @@ class AssetBuilder:
             item_id: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str, list]]:
-        item = find_by_id(self.asset_items(), item_id)
+    ) -> Optional[Any]:
+        item = find_by_id(self.asset_items(), item_id)  # type: dict
         if item is None:
             raise MissingItemError(f'Missing item {item_id}')
 
@@ -250,7 +250,7 @@ class AssetBuilder:
         item.update({k: v for k, v in members.items() if v is not None})
         return self
 
-    def asset_item_params(self, item_id: str) -> List[dict]:
+    def asset_item_params(self, item_id: str) -> List[Dict[Any, Any]]:
         return self.asset_item_by_id(item_id, 'params', [])
 
     def asset_item_param_by_id(
@@ -259,7 +259,7 @@ class AssetBuilder:
             param_id: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         param = find_by_id(self.asset_item_by_id(item_id, 'params', []), param_id)
         if param is None:
             raise MissingItemError(f'Missing item {param_id} in item {item_id}')
@@ -294,7 +294,7 @@ class AssetBuilder:
         param.update({k: v for k, v in members.items() if v is not None})
         return self
 
-    def asset_configuration_params(self) -> List[dict]:
+    def asset_configuration_params(self) -> List[Dict[Any, Any]]:
         return self._asset.get('configuration', {}).get('params', [])
 
     def asset_configuration_param_by_id(
@@ -302,7 +302,7 @@ class AssetBuilder:
             param_id: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         param = find_by_id(self.asset_configuration_params(), param_id)
         if param is None:
             raise MissingParameterError(f'Missing configuration parameter {param_id}')

@@ -54,10 +54,12 @@ def test_request_should_build_successfully_a_valid_requests():
             .with_type('purchase')
             .with_status('approved')
             .with_marketplace('MP-12345')
+            # duplicate call to ensure the member is not duplicated.
             .with_marketplace('MP-12345')
             .with_note(NOTE)
             .with_reason(REASON)
             .with_assignee(USER_ID, USER_NAME, USER_EMAIL)
+            # duplicate call to ensure the member is not duplicated.
             .with_assignee(USER_ID, USER_NAME, USER_EMAIL)
             .with_param('P_001', 'P_001-Value', 'P_001-Error')
             .with_param('P_001', 'P_001-Value-UPD', 'P_001-Error-UPD')

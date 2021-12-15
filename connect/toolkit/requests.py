@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from connect.toolkit import _param_members, find_by_id, with_member, without_member
 from connect.toolkit.assets import AssetBuilder
@@ -49,7 +49,7 @@ class RequestBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         marketplace = self._request.get('marketplace')
         if marketplace is None:
             return None
@@ -81,7 +81,7 @@ class RequestBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         assignee = self._request.get('assignee')
         if assignee is None:
             return None
@@ -96,7 +96,7 @@ class RequestBuilder:
         })
         return self
 
-    def params(self) -> List[dict]:
+    def params(self) -> List[Dict[Any, Any]]:
         return self._request.get('params', [])
 
     def param_by_id(
@@ -104,7 +104,7 @@ class RequestBuilder:
             param_id: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         parameter = find_by_id(self.params(), param_id)
         if parameter is None:
             raise MissingParameterError(f'Missing parameter {param_id}')

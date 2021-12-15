@@ -34,7 +34,7 @@ class TierConfigurationBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[dict]:
+    ) -> Optional[Any]:
         product = self._tier_config.get('product')
         if product is None:
             return None
@@ -56,7 +56,7 @@ class TierConfigurationBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[dict]:
+    ) -> Optional[Any]:
         marketplace = self._tier_config.get('marketplace')
         if marketplace is None:
             return None
@@ -78,7 +78,7 @@ class TierConfigurationBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[dict]:
+    ) -> Optional[Any]:
         connection = self._tier_config.get('connection')
         if connection is None:
             return None
@@ -96,7 +96,7 @@ class TierConfigurationBuilder:
             self,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         account = self._tier_config.get('account')
         if account is None:
             return None
@@ -126,7 +126,7 @@ class TierConfigurationBuilder:
             param_id: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         parameter = find_by_id(self.tier_configuration_params(), param_id)
         if parameter is None:
             raise MissingParameterError(f'Missing parameter {param_id}')
@@ -168,7 +168,7 @@ class TierConfigurationBuilder:
             param_id: str,
             key: Optional[str] = None,
             default: Optional[Any] = None,
-    ) -> Optional[Union[dict, str]]:
+    ) -> Optional[Any]:
         parameter = find_by_id(self.tier_configuration_configuration_params(), param_id)
         if parameter is None:
             raise MissingParameterError(f'Missing parameter {param_id}')
