@@ -133,3 +133,6 @@ dmypy.json
 
 # no git files
 *nogit*
+
+# poetry
+poetry.lock
