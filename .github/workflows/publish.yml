@@ -31,23 +31,6 @@ jobs:
       - name: Testing
         run: |
           poetry run pytest
-      - name: Fix coverage.xml for Sonar
-        run: |
-          sed -i 's/\/home\/runner\/work\/connect-cli\/connect-devops-testing-library\//\/github\/workspace\//g' coverage.xml
-      - name: SonarCloud
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - name: Wait sonar to process report
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '60s'
-      - name: SonarQube Quality Gate check
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Extract tag name
         uses: actions/github-script@v3
         id: tag
