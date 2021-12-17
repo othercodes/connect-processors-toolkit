@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from connect.toolkit import _param_members, find_by_id, merge
+from connect.toolkit import find_by_id, make_param, merge, request_model
 from connect.toolkit.assets import AssetBuilder
 from connect.toolkit.exceptions import MissingParameterError
 from connect.toolkit.tier_configurations import TierConfigurationBuilder
@@ -19,6 +19,15 @@ class RequestBuilder:
 
     def raw(self) -> dict:
         return self._request
+
+    def request_type(self) -> str:
+        return request_model(self.raw())
+
+    def is_tier_config_request(self) -> bool:
+        return 'tier-config' == self.request_type()
+
+    def is_asset_request(self) -> bool:
+        return 'asset' == self.request_type()
 
     def without(self, key: str) -> RequestBuilder:
         self._request.pop(key, None)
@@ -91,7 +100,7 @@ class RequestBuilder:
     def params(self) -> List[Dict[Any, Any]]:
         return self._request.get('params', [])
 
-    def param_by_id(self, param_id: str, key: Optional[str] = None, default: Optional[Any] = None) -> Optional[Any]:
+    def param(self, param_id: str, key: Optional[str] = None, default: Optional[Any] = None) -> Optional[Any]:
         parameter = find_by_id(self.params(), param_id)
         if parameter is None:
             raise MissingParameterError(f'Missing parameter {param_id}')
@@ -111,19 +120,12 @@ class RequestBuilder:
             value_type: str = 'text',
     ) -> RequestBuilder:
         try:
-            param = self.param_by_id(param_id)
+            param = self.param(param_id)
         except MissingParameterError:
-            param = {
-                'id': param_id,
-                'name': param_id,
-                'title': f'Request parameter {param_id}',
-                'description': f'Request parameter description of {param_id}',
-                'type': value_type,
-            }
-
+            param = {'id': param_id}
             self._request.update({'params': self.params() + [param]})
 
-        members = _param_members(param, value, value_error)
+        members = make_param(param_id, value, value_error, value_type)
         param.update({k: v for k, v in members.items() if v is not None})
         return self
 

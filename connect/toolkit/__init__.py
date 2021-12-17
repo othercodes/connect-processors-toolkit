@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Union
+
+from faker import Faker
+
+_faker = Faker(['en_US'])
 
 
 def find_by_id(elements: List[dict], element_id: str, default: Optional[dict] = None) -> Optional[dict]:
@@ -19,34 +23,32 @@ def find_by_id(elements: List[dict], element_id: str, default: Optional[dict] = 
         return default
 
 
-def with_member(dictionary: dict, member_id: str, member: Any) -> dict:
+def request_model(request: dict) -> str:
     """
-    Add a new member to the given dictionary.
+    Returns the request model depending on the request type.
 
-    :param dictionary: The base dictionary.
-    :param member_id: The member id.
-    :param member: The member to be added.
-    :return: The updated dictionary.
+    :param request: dict
+    :return: str
     """
-    if dictionary.get(member_id) is None:
-        if isinstance(member, dict):
-            dictionary.update({member_id: {}})
-        elif isinstance(member, list):
-            dictionary.update({member_id: []})
 
-    if isinstance(member, dict):
-        dictionary.get(member_id, {}).update({k: v for k, v in member.items() if v is not None})
-    elif isinstance(member, list):
-        dictionary.get(member_id, []).extend(member)
-    else:
-        dictionary.update({member_id: member})
+    def match_request_type(model: dict) -> bool:
+        return model.get('object') in request or request.get('type') in model.get('types')
 
-    return dictionary
-
-
-def without_member(dictionary: dict, member_id: str) -> dict:
-    dictionary.pop(member_id, None)
-    return dictionary
+    try:
+        return next(filter(match_request_type, [
+            {
+                'request': 'asset',
+                'object': 'asset',
+                'types': ['adjustment', 'purchase', 'change', 'suspend', 'resume', 'cancel'],
+            },
+            {
+                'request': 'tier-config',
+                'object': 'configuration',
+                'types': ['setup'],
+            },
+        ])).get('request')
+    except StopIteration:
+        return 'undefined'
 
 
 def merge(base: dict, override: dict) -> dict:
@@ -63,7 +65,7 @@ def merge(base: dict, override: dict) -> dict:
             if isinstance(new_base[key], dict) and isinstance(value, dict):
                 new_base[key] = merge(new_base[key], value)
             elif isinstance(new_base[key], list) and isinstance(value, list):
-                new_base[key] = new_base[key].extend(value)
+                new_base[key].extend(value)
             else:
                 new_base[key] = value
         else:
@@ -72,40 +74,50 @@ def merge(base: dict, override: dict) -> dict:
     return new_base
 
 
-def _param_members(param: dict, value: Optional[Union[str, dict]] = None, value_error: Optional[str] = None) -> dict:
-    if isinstance(value, dict):
-        key = 'structured_value'
-        new_value = param.get(key, {})
-        new_value.update(value)
-    else:
-        key = 'value'
-        new_value = value
-
-    return {key: new_value, 'value_error': value_error}
+def make_param(
+        param_id: str,
+        value: Optional[Union[str, dict]] = None,
+        value_error: Optional[str] = None,
+        value_type: Optional[str] = None,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        scope: Optional[str] = None,
+        phase: Optional[str] = None,
+) -> dict:
+    return {
+        'id': param_id,
+        'structured_value' if isinstance(value, dict) else 'value': value,
+        'value_error': value_error,
+        'title': f'Parameter {param_id} title.' if title is None else title,
+        'description': f'Parameter {param_id} description.' if description is None else description,
+        'type': 'text' if value_type is None else value_type,
+        'scope': scope,
+        'phase': phase,
+    }
 
 
 def make_tier(tier_type: str = 'customer') -> dict:
     return {
-        "name": 'Acme LLC',
+        "name": _faker.company(),
         "type": tier_type,
-        "external_id": "100000",
-        "external_uid": "00000000-0000-0000-0000-000000000000",
+        "external_id": f"{_faker.pyint(1000000, 9999999)}",
+        "external_uid": f"{_faker.uuid4()}",
         "contact_info": {
-            "address_line1": "222 Fake Street",
-            "address_line2": "1B",
-            "city": "City",
-            "state": "State",
-            "postal_code": "000000",
-            "country": "US",
+            "address_line1": f"{_faker.pyint(100, 999)}, {_faker.street_name()}",
+            "address_line2": _faker.secondary_address(),
+            "city": _faker.city(),
+            "state": _faker.state(),
+            "postal_code": _faker.zipcode(),
+            "country": _faker.country_code(),
             "contact": {
-                "first_name": "John",
-                "last_name": "Doe",
-                "email": "john.doe@fake.email.com",
+                "first_name": _faker.first_name(),
+                "last_name": _faker.last_name(),
+                "email": _faker.company_email(),
                 "phone_number": {
-                    "country_code": "+1",
-                    "area_code": "100",
-                    "phone_number": "123456",
-                    "extension": "001",
+                    "country_code": f"+{_faker.pyint(1, 99)}",
+                    "area_code": f"{_faker.pyint(1, 99)}",
+                    "phone_number": f"{_faker.pyint(1, 999999)}",
+                    "extension": f"{_faker.pyint(1, 100)}",
                 },
             },
         },
