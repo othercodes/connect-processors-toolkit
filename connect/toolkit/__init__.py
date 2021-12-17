@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, List, Optional, Union
 
 
@@ -46,6 +47,29 @@ def with_member(dictionary: dict, member_id: str, member: Any) -> dict:
 def without_member(dictionary: dict, member_id: str) -> dict:
     dictionary.pop(member_id, None)
     return dictionary
+
+
+def merge(base: dict, override: dict) -> dict:
+    """
+    Merge two dictionaries (override into base) recursively.
+
+    :param base: The base dictionary.
+    :param override: Override dictionary to be merged into base.
+    :return dict: The new dictionary.
+    """
+    new_base = deepcopy(base)
+    for key, value in override.items():
+        if key in new_base:
+            if isinstance(new_base[key], dict) and isinstance(value, dict):
+                new_base[key] = merge(new_base[key], value)
+            elif isinstance(new_base[key], list) and isinstance(value, list):
+                new_base[key] = new_base[key].extend(value)
+            else:
+                new_base[key] = value
+        else:
+            new_base[key] = value
+
+    return new_base
 
 
 def _param_members(param: dict, value: Optional[Union[str, dict]] = None, value_error: Optional[str] = None) -> dict:

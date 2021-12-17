@@ -30,43 +30,38 @@ def test_request_builder_should_raise_value_error_on_invalid_init_value():
 
 
 def test_request_builder_should_return_none_on_not_initialized_members():
-    request = (
-        RequestBuilder()
-    )
+    request = RequestBuilder()
 
     assert request.marketplace() is None
     assert request.assignee() is None
 
 
 def test_request_builder_should_remove_required_member_from_request():
-    request = (
-        RequestBuilder()
-            .with_id('PR-0000-0000-0000-100')
-            .without('id')
-    )
+    request = RequestBuilder()
+    request.with_id('PR-0000-0000-0000-100')
+    request.without('id')
+
     assert request.id() is None
 
 
 def test_request_should_build_successfully_a_valid_requests():
-    request = (
-        RequestBuilder()
-            .with_id('PR-001')
-            .with_type('purchase')
-            .with_status('approved')
-            .with_marketplace('MP-12345')
-            # duplicate call to ensure the member is not duplicated.
-            .with_marketplace('MP-12345')
-            .with_note(NOTE)
-            .with_reason(REASON)
-            .with_assignee(USER_ID, USER_NAME, USER_EMAIL)
-            # duplicate call to ensure the member is not duplicated.
-            .with_assignee(USER_ID, USER_NAME, USER_EMAIL)
-            .with_param('P_001', 'P_001-Value', 'P_001-Error')
-            .with_param('P_001', 'P_001-Value-UPD', 'P_001-Error-UPD')
-            .with_param('P_002', 'P_002-Value', 'P_002-Error')
+    request = RequestBuilder()
+    request.with_id('PR-001')
+    request.with_type('purchase')
+    request.with_status('approved')
+    request.with_marketplace('MP-12345')
+    # duplicate call to ensure the member is not duplicated.
+    request.with_marketplace('MP-12345')
+    request.with_note(NOTE)
+    request.with_reason(REASON)
+    request.with_assignee(USER_ID, USER_NAME, USER_EMAIL)
+    # duplicate call to ensure the member is not duplicated.
+    request.with_assignee(USER_ID, USER_NAME, USER_EMAIL)
+    request.with_param('P_001', 'P_001-Value', 'P_001-Error')
+    request.with_param('P_001', 'P_001-Value-UPD', 'P_001-Error-UPD')
+    request.with_param('P_002', 'P_002-Value', 'P_002-Error')
 
-    )
-    dictionary = request.request()
+    dictionary = request.raw()
 
     assert dictionary['id'] == request.id() == 'PR-001'
     assert dictionary['type'] == request.type() == 'purchase'
@@ -76,22 +71,22 @@ def test_request_should_build_successfully_a_valid_requests():
 
 
 def test_asset_builder_should_build_successfully_a_valid_asset_request():
-    request = (
-        AssetRequestBuilder()
-            .with_asset_id('AS-001')
-            .with_id('PRD-001')
-            .with_type('purchase')
-            .with_status('pending')
-            .with_marketplace('MP-12345')
-            .with_note(NOTE)
-            .with_reason(REASON)
-            .with_assignee(USER_ID, USER_NAME, USER_EMAIL)
-            .with_param('P_001', 'P_001-Value', 'P_001-Error')
-            .with_param('P_001', 'P_001-Value-UPD', 'P_001-Error-UPD')
-            .with_param('P_002', 'P_002-Value', 'P_002-Error')
+    request = AssetRequestBuilder()
+    request.with_asset_id('AS-001')
+    request.with_id('PRD-001')
+    request.with_type('purchase')
+    request.with_status('pending')
+    request.with_marketplace('MP-12345')
+    request.with_note(NOTE)
+    request.with_reason(REASON)
+    request.with_assignee(USER_ID, USER_NAME, USER_EMAIL)
+    request.with_params([
+        {'param_id': 'P_001', 'value': 'P_001-Value', 'value_error': 'P_001-Error'},
+        {'param_id': 'P_001', 'value': 'P_001-Value-UPD', 'value_error': 'P_001-Error-UPD'},
+        {'param_id': 'P_002', 'value': 'P_002-Value', 'value_error': 'P_002-Error'},
+    ])
 
-    )
-    dictionary = request.request()
+    dictionary = request.raw()
 
     assert dictionary['id'] == request.id() == 'PRD-001'
     assert dictionary['type'] == request.type() == 'purchase'
@@ -102,22 +97,20 @@ def test_asset_builder_should_build_successfully_a_valid_asset_request():
 
 
 def test_tier_configuration_builder_should_successfully_a_valid_tier_configuration_request():
-    request = (
-        TierConfigurationRequestBuilder()
-            .with_tier_configuration_id('TC-001')
-            .with_id('TCR-001')
-            .with_type('setup')
-            .with_status('pending')
-            .with_marketplace('MP-12345')
-            .with_note(NOTE)
-            .with_reason(REASON)
-            .with_assignee(USER_ID, USER_NAME, USER_EMAIL)
-            .with_param('P_001', 'P_001-Value', 'P_001-Error')
-            .with_param('P_001', 'P_001-Value-UPD', 'P_001-Error-UPD')
-            .with_param('P_002', 'P_002-Value', 'P_002-Error')
+    request = TierConfigurationRequestBuilder()
+    request.with_tier_configuration_id('TC-001')
+    request.with_id('TCR-001')
+    request.with_type('setup')
+    request.with_status('pending')
+    request.with_marketplace('MP-12345')
+    request.with_note(NOTE)
+    request.with_reason(REASON)
+    request.with_assignee(USER_ID, USER_NAME, USER_EMAIL)
+    request.with_param('P_001', 'P_001-Value', 'P_001-Error')
+    request.with_param('P_001', 'P_001-Value-UPD', 'P_001-Error-UPD')
+    request.with_param('P_002', 'P_002-Value', 'P_002-Error')
 
-    )
-    dictionary = request.request()
+    dictionary = request.raw()
 
     assert dictionary['id'] == request.id() == 'TCR-001'
     assert dictionary['type'] == request.type() == 'setup'
