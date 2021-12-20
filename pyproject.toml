@@ -1,12 +1,20 @@
 [tool.poetry]
-name = "connect--toolkit"
+name = "connect-processor-toolkit"
 version = "0.1.0"
 description = "Bunch of tools to ease the development of Connect Processors."
 license = "MIT"
+repository = 'https://github.com/othercodes/connect-processor-toolkit'
+packages = [
+    { include = "connect" },
+]
 authors = [
     "Unay Santisteban <davidunay.santisteban@cloudblue.com>"
 ]
-keywords = []
+keywords = [
+    'connect',
+    'processors',
+    'tools'
+]
 classifiers = []
 
 [tool.poetry.dependencies]
@@ -19,6 +27,17 @@ pytest = "^6.1.2"
 pytest-cov = "^2.10.1"
 pytest-mock = "^3.3.1"
 coverage = { extras = ["toml"], version = "^5.3" }
+flake8 = "~3.8"
+flake8-bugbear = "~20"
+flake8-cognitive-complexity = "^0.1"
+flake8-commas = "~2.0"
+flake8-future-import = "~0.4"
+flake8-import-order = "~0.18"
+flake8-broken-line = "~0.3"
+flake8-comprehensions = "^3.3.1"
+flake8-debugger = "^4.0.0"
+flake8-eradicate = "^1.0.0"
+flake8-string-format = "^0.3.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=42"]
