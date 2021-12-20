@@ -227,7 +227,7 @@ class TierConfigurationBuilder:
     ) -> Optional[Any]:
         parameter = find_by_id(self.tier_configuration_params(), param_id)
         if parameter is None:
-            raise MissingParameterError(f'Missing parameter {param_id}')
+            raise MissingParameterError(f'Missing parameter {param_id}', param_id)
 
         return parameter if key is None else parameter.get(key, default)
 
@@ -264,7 +264,7 @@ class TierConfigurationBuilder:
     ) -> Optional[Any]:
         parameter = find_by_id(self.tier_configuration_configuration_params(), param_id)
         if parameter is None:
-            raise MissingParameterError(f'Missing parameter {param_id}')
+            raise MissingParameterError(f'Missing parameter {param_id}', param_id)
 
         return parameter if key is None else parameter.get(key, default)
 

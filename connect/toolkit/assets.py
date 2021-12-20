@@ -204,7 +204,7 @@ class AssetBuilder:
     def asset_param(self, param_id: str, key: Optional[str] = None, default: Optional[Any] = None) -> Optional[Any]:
         parameter = find_by_id(self.asset_params(), param_id)
         if parameter is None:
-            raise MissingParameterError(f'Missing parameter {param_id}')
+            raise MissingParameterError(f'Missing parameter {param_id}', param_id)
 
         return parameter if key is None else parameter.get(key, default)
 
@@ -238,7 +238,7 @@ class AssetBuilder:
     def asset_item(self, item_id: str, key: Optional[str] = None, default: Optional[Any] = None) -> Optional[Any]:
         item = find_by_id(self.asset_items(), item_id)
         if item is None:
-            raise MissingItemError(f'Missing item {item_id}')
+            raise MissingItemError(f'Missing item {item_id}', item_id)
 
         return item if key is None else item.get(key, default)
 
@@ -294,7 +294,7 @@ class AssetBuilder:
     ) -> Optional[Any]:
         param = find_by_id(self.asset_item(item_id, 'params', []), param_id)
         if param is None:
-            raise MissingItemError(f'Missing item {param_id} in item {item_id}')
+            raise MissingItemError(f'Missing item {param_id} in item {item_id}', item_id)
 
         return param if key is None else param.get(key, default)
 
@@ -344,7 +344,7 @@ class AssetBuilder:
     ) -> Optional[Any]:
         param = find_by_id(self.asset_configuration_params(), param_id)
         if param is None:
-            raise MissingParameterError(f'Missing configuration parameter {param_id}')
+            raise MissingParameterError(f'Missing configuration parameter {param_id}', param_id)
 
         return param if key is None else param.get(key, default)
 
