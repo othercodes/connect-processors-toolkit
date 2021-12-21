@@ -1,6 +1,6 @@
 import pytest
 
-from connect.toolkit.requests import RequestBuilder, AssetRequestBuilder, TierConfigurationRequestBuilder
+from connect.toolkit.requests import RequestBuilder
 
 NOTE = 'A note'
 REASON = 'A reason'
@@ -72,9 +72,13 @@ def test_request_should_build_successfully_a_valid_requests():
     _shared_request_assertions(raw, r)
 
 
-def test_asset_request_builder_should_build_successfully_a_valid_asset_request():
-    r = AssetRequestBuilder()
-    r.with_asset_id('AS-001')
+def test_request_builder_should_build_successfully_a_valid_asset_request():
+    r = RequestBuilder()
+
+    a = r.asset()
+    a.with_asset_id('AS-001')
+
+    r.with_asset(a)
     r.with_id('TCR-001')
     r.with_type('setup')
     r.with_status('pending')
@@ -96,12 +100,16 @@ def test_asset_request_builder_should_build_successfully_a_valid_asset_request()
     assert raw['status'] == r.status() == 'pending'
     _shared_request_assertions(raw, r)
 
-    assert raw['asset']['id'] == r.asset_id() == 'AS-001'
+    assert raw['asset']['id'] == a.asset_id() == 'AS-001'
 
 
 def test_tier_configuration_request_builder_should_build_successfully_a_valid_tier_configuration_request():
-    r = TierConfigurationRequestBuilder()
-    r.with_tier_configuration_id('TC-001')
+    r = RequestBuilder()
+
+    t = r.tier_configuration()
+    t.with_tier_configuration_id('TC-001')
+
+    r.with_tier_configuration(t)
     r.with_id('TCR-001')
     r.with_type('setup')
     r.with_status('pending')
@@ -125,4 +133,4 @@ def test_tier_configuration_request_builder_should_build_successfully_a_valid_ti
     assert raw['status'] == r.status() == 'pending'
     _shared_request_assertions(raw, r)
 
-    assert raw['configuration']['id'] == r.tier_configuration_id() == 'TC-001'
+    assert raw['configuration']['id'] == t.tier_configuration_id() == 'TC-001'

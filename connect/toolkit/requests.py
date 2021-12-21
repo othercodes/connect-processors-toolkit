@@ -129,24 +129,22 @@ class RequestBuilder:
         param.update({k: v for k, v in members.items() if v is not None})
         return self
 
+    def asset(self) -> AssetBuilder:
+        return AssetBuilder(self._request.get('asset', {}))
 
-class AssetRequestBuilder(RequestBuilder, AssetBuilder):
-    def __init__(self, request: Optional[dict] = None):
-        request = {} if request is None else request
+    def with_asset(self, asset: Union[dict, AssetBuilder]) -> RequestBuilder:
+        asset = asset if isinstance(asset, dict) else asset.raw()
+        self._request.update({
+            'asset': merge(self._request.get('asset', {}), asset),
+        })
+        return self
 
-        if 'asset' not in request:
-            request.update({'asset': {}})
+    def tier_configuration(self) -> TierConfigurationBuilder:
+        return TierConfigurationBuilder(self._request.get('configuration', {}))
 
-        RequestBuilder.__init__(self, request)
-        AssetBuilder.__init__(self, request.get('asset'))
-
-
-class TierConfigurationRequestBuilder(RequestBuilder, TierConfigurationBuilder):
-    def __init__(self, request: Optional[dict] = None):
-        request = {} if request is None else request
-
-        if 'configuration' not in request:
-            request.update({'configuration': {}})
-
-        RequestBuilder.__init__(self, request)
-        TierConfigurationBuilder.__init__(self, request.get('configuration'))
+    def with_tier_configuration(self, configuration: Union[dict, TierConfigurationBuilder]) -> RequestBuilder:
+        configuration = configuration if isinstance(configuration, dict) else configuration.raw()
+        self._request.update({
+            'configuration': merge(self._request.get('configuration', {}), configuration),
+        })
+        return self
