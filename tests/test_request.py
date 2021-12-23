@@ -1,6 +1,6 @@
 import pytest
 
-from connect.toolkit.requests import RequestBuilder
+from connect.processors_toolkit.requests import RequestBuilder
 
 NOTE = 'A note'
 REASON = 'A reason'

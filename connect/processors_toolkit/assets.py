@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from connect.toolkit import find_by_id, make_param, make_tier, merge
-from connect.toolkit.exceptions import MissingItemError, MissingParameterError
+from connect.processors_toolkit import find_by_id, make_param, make_tier, merge
+from connect.processors_toolkit.exceptions import MissingItemError, MissingParameterError
 
 
 class AssetBuilder:

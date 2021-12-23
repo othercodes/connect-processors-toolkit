@@ -45,7 +45,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 testpaths = "tests"
-addopts = "--cov=connect.toolkit --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
+addopts = "--cov=connect.processors_toolkit --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
 
 [tool.coverage.run]
 omit = ["tests/*", "venv*/*", "setup.py"]

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from connect.toolkit import find_by_id, make_param, merge, request_model
-from connect.toolkit.assets import AssetBuilder
-from connect.toolkit.exceptions import MissingParameterError
-from connect.toolkit.tier_configurations import TierConfigurationBuilder
+from connect.processors_toolkit import find_by_id, make_param, merge, request_model
+from connect.processors_toolkit.assets import AssetBuilder
+from connect.processors_toolkit.exceptions import MissingParameterError
+from connect.processors_toolkit.tier_configurations import TierConfigurationBuilder
 
 
 class RequestBuilder:

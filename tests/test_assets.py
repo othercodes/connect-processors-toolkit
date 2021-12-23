@@ -1,7 +1,7 @@
 import pytest
 
-from connect.toolkit.assets import AssetBuilder
-from connect.toolkit.exceptions import MissingItemError
+from connect.processors_toolkit.assets import AssetBuilder
+from connect.processors_toolkit.exceptions import MissingItemError
 
 
 def test_asset_builder_should_raise_value_error_on_invalid_init_value():

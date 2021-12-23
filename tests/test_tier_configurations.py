@@ -1,6 +1,6 @@
 import pytest
 
-from connect.toolkit.tier_configurations import TierConfigurationBuilder
+from connect.processors_toolkit.tier_configurations import TierConfigurationBuilder
 
 
 def test_tier_configuration_builder_should_raise_value_error_on_invalid_init_value():

@@ -1,4 +1,4 @@
-from connect.toolkit import request_model, merge
+from connect.processors_toolkit import request_model, merge
 
 
 def test_request_model_should_successfully_return_the_request_model():
