@@ -18,14 +18,20 @@ keywords = [
 classifiers = []
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 Faker = "^9.8.2"
+pinject = "^0.14.1"
+connect-extension-runner = "^24.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"
 pytest-cov = "^2.10.1"
 pytest-mock = "^3.3.1"
+pytest-asyncio = "^0.15.1"
+pytest-httpx = "^0.12.0"
 coverage = { extras = ["toml"], version = "^5.3" }
+connect-devops-testing-library = { git = "https://github.com/cloudblue/connect-devops-testing-library", rev = "master" }
+responses = "^0.12.0"
 flake8 = "~3.8"
 flake8-bugbear = "~20"
 flake8-cognitive-complexity = "^0.1"
