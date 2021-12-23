@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "connect-processor-toolkit"
+name = "connect-processors-toolkit"
 version = "0.1.0"
 description = "Bunch of tools to ease the development of Connect Processors."
 license = "MIT"
-repository = 'https://github.com/othercodes/connect-processor-toolkit'
+repository = 'https://github.com/othercodes/connect-processors-toolkit'
 packages = [
     { include = "connect" },
 ]
