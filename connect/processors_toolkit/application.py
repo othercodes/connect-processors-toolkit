@@ -5,10 +5,16 @@ import pinject
 from enum import Enum, unique
 from abc import ABC, abstractmethod
 from logging import Logger
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Type
 
 from connect.client import ConnectClient
-from connect.eaas.extension import Extension
+from connect.eaas.extension import (
+    Extension,
+    ProcessingResponse,
+    ProductActionResponse,
+    ValidationResponse,
+)
+from connect.processors_toolkit.requests import RequestBuilder
 
 
 @unique
@@ -32,13 +38,7 @@ class Dependencies:
         return self.bind(name, BindType.TO_INSTANCE, thing)
 
 
-class DIContainer(ABC):
-    @abstractmethod
-    def get(self, cls) -> Any:
-        pass
-
-
-class Container(DIContainer):
+class Container:
     """
     Dependency Container based in the PInject project.
     """
@@ -73,6 +73,7 @@ class Application(Extension, ABC):
         super().__init__(client, logger, config)
 
         dependencies = self.dependencies() if dependencies is None else dependencies
+        dependencies.to_instance('config', config)
         dependencies.to_instance('client', client)
         dependencies.to_instance('logger', logger)
         for key, value in config.items():
@@ -81,11 +82,44 @@ class Application(Extension, ABC):
         self.__container = Container(dependencies)
 
     @property
-    def container(self) -> DIContainer:
+    def container(self) -> Container:
         return self.__container
 
     def dependencies(self) -> Dependencies:
         return Dependencies()
 
-    def make(self, cls: str) -> Any:
+    def make(self, cls: Type) -> Any:
         return self.container.get(cls)
+
+
+class ProcessingFlow(ABC):  # pragma: no cover
+    @abstractmethod
+    def process(self, request: RequestBuilder) -> ProcessingResponse:
+        """
+        Process the incoming request.
+
+        :param request: The incoming request dictionary.
+        :return: ProcessingResponse
+        """
+
+
+class ValidationFlow(ABC):  # pragma: no cover
+    @abstractmethod
+    def validate(self, request: RequestBuilder) -> ValidationResponse:
+        """
+        Validates the incoming request.
+
+        :param request: The incoming request dictionary.
+        :return: ValidationResponse
+        """
+
+
+class ActionFlow(ABC):  # pragma: no cover
+    @abstractmethod
+    def handle(self, request: dict) -> ProductActionResponse:
+        """
+        handle the incoming request.
+
+        :param request: The incoming request dictionary.
+        :return: ProductActionResponse
+        """
