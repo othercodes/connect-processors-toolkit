@@ -1,8 +1,6 @@
-import os
-
 from connect.client import ConnectClient
 from connect.client.models import ResourceSet
-from connect.processors_toolkit.mixin import WithProductHelper
+from connect.processors_toolkit.api.mixins import WithProductHelper
 
 
 class Helper(WithProductHelper):
