@@ -3,18 +3,12 @@ from __future__ import annotations
 import pinject
 
 from enum import Enum, unique
-from abc import ABC, abstractmethod
+from abc import ABC
 from logging import Logger
 from typing import Any, Dict, Optional, Type
 
 from connect.client import ConnectClient
-from connect.eaas.extension import (
-    Extension,
-    ProcessingResponse,
-    ProductActionResponse,
-    ValidationResponse,
-)
-from connect.processors_toolkit.requests import RequestBuilder
+from connect.eaas.extension import Extension
 
 
 @unique
@@ -24,6 +18,23 @@ class BindType(Enum):
 
 
 class Dependencies:
+    """
+    Dependency declarations.
+
+    to_class:
+        Define a dependency binding the dependency key to a certain class.
+            dependencies.to_class('request_builder', RequestBuilder)
+
+    to_instance:
+        Define a dependency binding the dependency key to a certain instance.
+            dependencies.to_class('service_api_key', 'XXXXXXXXXXX')
+
+    bind:
+        Raw dependency binding.
+            dependencies.bind('service_api_key', BindType.TO_INSTANCE, 'XXXXXXXXXXX')
+
+    """
+
     def __init__(self, dependencies: Optional[dict] = None):
         self.binds = {} if dependencies is None else dependencies
 
@@ -63,6 +74,13 @@ class Container:
 
 
 class Application(Extension, ABC):
+    """
+    Main Application Class
+
+    Defines the entrypoint of the service and creates the dependency
+    container with all the declared dependencies.
+    """
+
     def __init__(
             self,
             client: ConnectClient,
@@ -89,37 +107,10 @@ class Application(Extension, ABC):
         return Dependencies()
 
     def make(self, cls: Type) -> Any:
+        """
+        Makes the requested class by type.
+
+        :param cls: The class type.
+        :return: Object
+        """
         return self.container.get(cls)
-
-
-class ProcessingFlow(ABC):  # pragma: no cover
-    @abstractmethod
-    def process(self, request: RequestBuilder) -> ProcessingResponse:
-        """
-        Process the incoming request.
-
-        :param request: The incoming request dictionary.
-        :return: ProcessingResponse
-        """
-
-
-class ValidationFlow(ABC):  # pragma: no cover
-    @abstractmethod
-    def validate(self, request: RequestBuilder) -> ValidationResponse:
-        """
-        Validates the incoming request.
-
-        :param request: The incoming request dictionary.
-        :return: ValidationResponse
-        """
-
-
-class ActionFlow(ABC):  # pragma: no cover
-    @abstractmethod
-    def handle(self, request: dict) -> ProductActionResponse:
-        """
-        handle the incoming request.
-
-        :param request: The incoming request dictionary.
-        :return: ProductActionResponse
-        """

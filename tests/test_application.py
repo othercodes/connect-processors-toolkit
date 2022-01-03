@@ -1,6 +1,7 @@
 from connect.eaas.extension import ProcessingResponse
 
-from connect.processors_toolkit.application import Application, ProcessingFlow, Dependencies
+from connect.processors_toolkit.application import Application, Dependencies
+from connect.processors_toolkit.application.contracts import ProcessingFlow
 from connect.processors_toolkit.requests import RequestBuilder
 
 
