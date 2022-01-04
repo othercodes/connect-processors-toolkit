@@ -16,6 +16,15 @@ class AssetBuilder:
 
         self._asset = asset
 
+    def __repr__(self) -> str:
+        return '{class_name}(asset={asset})'.format(
+            class_name=self.__class__.__name__,
+            asset=self._asset,
+        )
+
+    def __str__(self) -> str:
+        return str(self._asset)
+
     def raw(self) -> dict:
         return self._asset
 

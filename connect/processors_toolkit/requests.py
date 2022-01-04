@@ -17,6 +17,15 @@ class RequestBuilder:
 
         self._request = request
 
+    def __repr__(self) -> str:
+        return '{class_name}(request={request})'.format(
+            class_name=self.__class__.__name__,
+            request=self._request,
+        )
+
+    def __str__(self) -> str:
+        return str(self._request)
+
     def raw(self) -> dict:
         return self._request
 

@@ -16,6 +16,15 @@ class TierConfigurationBuilder:
 
         self._tier_config = tier_config
 
+    def __repr__(self) -> str:
+        return '{class_name}(tier_config={tier_config})'.format(
+            class_name=self.__class__.__name__,
+            tier_config=self._tier_config,
+        )
+
+    def __str__(self) -> str:
+        return str(self._tier_config)
+
     def raw(self) -> dict:
         return self._tier_config
 
