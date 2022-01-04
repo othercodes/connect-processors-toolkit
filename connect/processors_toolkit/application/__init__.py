@@ -4,10 +4,10 @@ import pinject
 
 from enum import Enum, unique
 from abc import ABC
-from logging import Logger
-from typing import Any, Dict, Optional, Type
+from logging import LoggerAdapter
+from typing import Any, Dict, Optional, Type, Union
 
-from connect.client import ConnectClient
+from connect.client import AsyncConnectClient, ConnectClient
 from connect.eaas.extension import Extension
 
 
@@ -83,8 +83,8 @@ class Application(Extension, ABC):
 
     def __init__(
             self,
-            client: ConnectClient,
-            logger: Logger,
+            client: Union[ConnectClient, AsyncConnectClient],
+            logger: LoggerAdapter,
             config: Dict[str, str],
             dependencies: Optional[Dependencies] = None,
     ):
