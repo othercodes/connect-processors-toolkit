@@ -1,6 +1,6 @@
 import pytest
 
-from connect.processors_toolkit.requests import RequestBuilder
+from connect.processors_toolkit.requests import RequestBuilder, request_model
 
 NOTE = 'A note'
 REASON = 'A reason'
@@ -25,6 +25,17 @@ def _shared_request_assertions(raw: dict, r: RequestBuilder):
     assert raw['params'][0]['value_error'] == r.param('P_001', 'value_error') == 'P_001-Error-UPD'
     assert raw['params'][1]['id'] == r.param('P_002', 'id') == 'P_002'
     assert raw['params'][1]['value'] == r.param('P_002', 'value') == 'P_002-Value'
+
+
+def test_request_model_should_successfully_return_the_request_model():
+    asset_request = {'type': 'purchase', 'asset': {}}
+    assert 'asset' == request_model(asset_request)
+
+    tier_config_request = {'type': 'setup', 'configuration': {}}
+    assert 'tier-config' == request_model(tier_config_request)
+
+    undefined_request = {}
+    assert 'undefined' == request_model(undefined_request)
 
 
 def test_request_builder_should_raise_value_error_on_invalid_init_value():

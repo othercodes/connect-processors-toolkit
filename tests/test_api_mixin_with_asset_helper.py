@@ -4,8 +4,8 @@ import os
 
 from connect.client import ConnectClient, ClientError
 from connect.devops_testing import asserts
-from connect.processors_toolkit.assets import AssetBuilder
 from connect.processors_toolkit.requests import RequestBuilder
+from connect.processors_toolkit.requests.assets import AssetBuilder
 from connect.processors_toolkit.api.mixins import WithAssetHelper
 
 

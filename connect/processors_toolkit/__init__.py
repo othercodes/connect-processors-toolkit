@@ -3,10 +3,6 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from faker import Faker
-
-_faker = Faker(['en_US'])
-
 
 def find_by_id(elements: List[dict], element_id: str, default: Optional[dict] = None) -> Optional[dict]:
     """
@@ -21,34 +17,6 @@ def find_by_id(elements: List[dict], element_id: str, default: Optional[dict] = 
         return next(filter(lambda element: element['id'] == element_id, elements))
     except StopIteration:
         return default
-
-
-def request_model(request: dict) -> str:
-    """
-    Returns the request model depending on the request type.
-
-    :param request: dict
-    :return: str
-    """
-
-    def match_request_type(model: dict) -> bool:
-        return model.get('object') in request or request.get('type') in model.get('types')
-
-    try:
-        return next(filter(match_request_type, [
-            {
-                'request': 'asset',
-                'object': 'asset',
-                'types': ['adjustment', 'purchase', 'change', 'suspend', 'resume', 'cancel'],
-            },
-            {
-                'request': 'tier-config',
-                'object': 'configuration',
-                'types': ['setup'],
-            },
-        ])).get('request')
-    except StopIteration:
-        return 'undefined'
 
 
 def merge(base: dict, override: dict) -> dict:
@@ -74,57 +42,14 @@ def merge(base: dict, override: dict) -> dict:
     return new_base
 
 
-def make_param(
-        param_id: str,
-        value: Optional[Union[str, dict]] = None,
-        value_error: Optional[str] = None,
-        value_type: Optional[str] = None,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        scope: Optional[str] = None,
-        phase: Optional[str] = None,
-) -> dict:
-    return {
-        'id': param_id,
-        'structured_value' if isinstance(value, dict) else 'value': value,
-        'value_error': value_error,
-        'title': f'Parameter {param_id} title.' if title is None else title,
-        'description': f'Parameter {param_id} description.' if description is None else description,
-        'type': 'text' if value_type is None else value_type,
-        'scope': scope,
-        'phase': phase,
-    }
-
-
-def make_tier(tier_type: str = 'customer') -> dict:
-    return {
-        "name": _faker.company(),
-        "type": tier_type,
-        "external_id": f"{_faker.pyint(1000000, 9999999)}",
-        "external_uid": f"{_faker.uuid4()}",
-        "contact_info": {
-            "address_line1": f"{_faker.pyint(100, 999)}, {_faker.street_name()}",
-            "address_line2": _faker.secondary_address(),
-            "city": _faker.city(),
-            "state": _faker.state(),
-            "postal_code": _faker.zipcode(),
-            "country": _faker.country_code(),
-            "contact": {
-                "first_name": _faker.first_name(),
-                "last_name": _faker.last_name(),
-                "email": _faker.company_email(),
-                "phone_number": {
-                    "country_code": f"+{_faker.pyint(1, 99)}",
-                    "area_code": f"{_faker.pyint(1, 99)}",
-                    "phone_number": f"{_faker.pyint(1, 999999)}",
-                    "extension": f"{_faker.pyint(1, 100)}",
-                },
-            },
-        },
-    }
-
-
 def mask(data: Union[Dict, List, Tuple, Any], to_mask: List[str]) -> Union[Dict, List, Tuple, Any]:
+    """
+    Mask the required values by key in a dictionary.
+
+    :param data: The dictionary to mask.
+    :param to_mask: The list of keys to be masked.
+    :return: The masked dictionary (it's a copy of the original).
+    """
     if isinstance(data, dict):
         data = deepcopy(data)
         for key in data.keys():

@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from connect.client import ClientError, ConnectClient
 from connect.client.models import ResourceSet
-from connect.processors_toolkit.assets import AssetBuilder
 from connect.processors_toolkit.requests import RequestBuilder
+from connect.processors_toolkit.requests.assets import AssetBuilder
 
 ASSET = "asset"
 APPROVE = 'approve'

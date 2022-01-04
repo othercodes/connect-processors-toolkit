@@ -1,15 +1,4 @@
-from connect.processors_toolkit import request_model, merge
-
-
-def test_request_model_should_successfully_return_the_request_model():
-    asset_request = {'type': 'purchase', 'asset': {}}
-    assert 'asset' == request_model(asset_request)
-
-    tier_config_request = {'type': 'setup', 'configuration': {}}
-    assert 'tier-config' == request_model(tier_config_request)
-
-    undefined_request = {}
-    assert 'undefined' == request_model(undefined_request)
+from connect.processors_toolkit import merge, mask
 
 
 def test_merge_should_merge_complex_structures():
@@ -40,3 +29,31 @@ def test_merge_should_merge_complex_structures():
     assert merged['asset']['status'] == 'suspended'
     assert merged['asset']['params'][0]['id'] == 1
     assert merged['asset']['params'][1]['id'] == 2
+
+
+def test_mask_function_should_mask_the_required_values():
+    payload = {
+        'id': '123456',
+        'payload': {
+            'key': 'mask-this-value',
+            'users': [
+                {'id': 1, 'password': '1'},
+                {'id': 2, 'password': '22'},
+                {'id': 3, 'password': '333'}
+            ]
+        }
+    }
+
+    expected = {
+        'id': '123456',
+        'payload': {
+            'key': '***************',
+            'users': [
+                {'id': 1, 'password': '*'},
+                {'id': 2, 'password': '**'},
+                {'id': 3, 'password': '***'}
+            ]
+        }
+    }
+
+    assert mask(payload, ['key', 'password']) == expected
