@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from faker import Faker
 
@@ -122,3 +122,18 @@ def make_tier(tier_type: str = 'customer') -> dict:
             },
         },
     }
+
+
+def mask(data: Union[Dict, List, Tuple, Any], to_mask: List[str]) -> Union[Dict, List, Tuple, Any]:
+    if isinstance(data, dict):
+        data = deepcopy(data)
+        for key in data.keys():
+            if key in to_mask:
+                data[key] = '*' * len(str(data[key]))
+            else:
+                data[key] = mask(data[key], to_mask)
+        return data
+    elif isinstance(data, (list, tuple)):
+        return [mask(item, to_mask) for item in data]
+    else:
+        return data
