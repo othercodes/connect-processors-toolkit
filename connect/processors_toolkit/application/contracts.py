@@ -56,7 +56,7 @@ class CustomEventFlow(ABC):  # pragma: no cover
         """
 
 
-class ScheduledFlow(ABC):
+class ScheduledFlow(ABC):  # pragma: no cover
     @abstractmethod
     def handle(self, request: dict) -> ScheduledExecutionResponse:
         """
