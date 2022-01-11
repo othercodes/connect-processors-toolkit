@@ -19,7 +19,7 @@ def test_application_should_make_required_flow_controller(sync_client_factory, l
     client = sync_client_factory([])
 
     extension = MySimpleExtension(client, logger, {'key': 'value'})
-    flow = extension.make(SampleFlow)
+    flow = extension.container.get(SampleFlow)
 
     assert isinstance(flow, SampleFlow)
     assert isinstance(flow, ProcessingFlow)
@@ -28,22 +28,25 @@ def test_application_should_make_required_flow_controller(sync_client_factory, l
 def test_application_should_make_required_flow_controller_with_custom_dependencies(sync_client_factory, logger):
     class MyExtensionWithDependencies(Application):
         def dependencies(self) -> Dependencies:
-            return Dependencies().to_class('api', SomeAPIClient)
+            return Dependencies().to_class('api_client', SomeAPIClient)
 
     class SomeAPIClient:
-        pass
+        def __init__(self, api_key):
+            self.api_key = api_key
 
     class SampleFlowWithService(ProcessingFlow):
-        def __init__(self, api):
-            self.api = api
+        def __init__(self, api_client):
+            self.api_client = api_client
 
         def process(self, request: RequestBuilder) -> ProcessingResponse:
             return ProcessingResponse.done()
 
     client = sync_client_factory([])
+    config = {'API_KEY': 'my-secret-api-key'}
 
-    extension = MyExtensionWithDependencies(client, logger, {'key': 'value'})
-    flow = extension.make(SampleFlowWithService)
+    extension = MyExtensionWithDependencies(client, logger, config)
+    flow = extension.container.get(SampleFlowWithService)
 
     assert isinstance(flow, SampleFlowWithService)
     assert isinstance(flow, ProcessingFlow)
+    assert flow.api_client.api_key == config['API_KEY']

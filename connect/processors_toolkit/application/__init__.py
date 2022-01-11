@@ -5,7 +5,7 @@ import pinject
 from enum import Enum, unique
 from abc import ABC
 from logging import LoggerAdapter
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Union
 
 from connect.client import AsyncConnectClient, ConnectClient
 from connect.eaas.extension import Extension
@@ -95,22 +95,9 @@ class Application(Extension, ABC):
         dependencies.to_instance('client', client)
         dependencies.to_instance('logger', logger)
         for key, value in config.items():
-            dependencies.to_instance(key, value)
+            dependencies.to_instance(key.lower(), value.strip())
 
-        self.__container = Container(dependencies)
-
-    @property
-    def container(self) -> Container:
-        return self.__container
+        self.container = Container(dependencies)
 
     def dependencies(self) -> Dependencies:
         return Dependencies()
-
-    def make(self, cls: Type) -> Any:
-        """
-        Makes the requested class by type.
-
-        :param cls: The class type.
-        :return: Object
-        """
-        return self.container.get(cls)
