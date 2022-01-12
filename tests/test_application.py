@@ -1,6 +1,6 @@
+import pytest
 from connect.eaas.extension import ProcessingResponse
-
-from connect.processors_toolkit.application import Application, Dependencies
+from connect.processors_toolkit.application import Application, Dependencies, DependencyBuildingFailure
 from connect.processors_toolkit.application.contracts import ProcessingFlow
 from connect.processors_toolkit.requests import RequestBuilder
 
@@ -50,3 +50,23 @@ def test_application_should_make_required_flow_controller_with_custom_dependenci
     assert isinstance(flow, SampleFlowWithService)
     assert isinstance(flow, ProcessingFlow)
     assert flow.api_client.api_key == config['API_KEY']
+
+
+def test_application_should_raise_exception_on_building_dependencies(sync_client_factory, logger):
+    class MyExtensionWithDependencies(Application):
+        pass
+
+    class SampleFlowWithService(ProcessingFlow):
+        def __init__(self, non_registered_dependency):
+            self.non_registered_dependency = non_registered_dependency
+
+        def process(self, request: RequestBuilder) -> ProcessingResponse:
+            return ProcessingResponse.done()
+
+    client = sync_client_factory([])
+    config = {}
+
+    extension = MyExtensionWithDependencies(client, logger, config)
+
+    with pytest.raises(DependencyBuildingFailure):
+        extension.container.get(SampleFlowWithService)

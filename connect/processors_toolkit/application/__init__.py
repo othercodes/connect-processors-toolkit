@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pinject
+from pinject.errors import NothingInjectableForArgError
 
 from enum import Enum, unique
 from abc import ABC
@@ -49,6 +50,10 @@ class Dependencies:
         return self.bind(name, BindType.TO_INSTANCE, thing)
 
 
+class DependencyBuildingFailure(Exception):
+    pass
+
+
 class Container:
     """
     Dependency Container based in the PInject project.
@@ -70,7 +75,10 @@ class Container:
         )
 
     def get(self, cls) -> Any:
-        return self.__container.provide(cls)
+        try:
+            return self.__container.provide(cls)
+        except NothingInjectableForArgError as e:
+            raise DependencyBuildingFailure(str(e))
 
 
 class Application(Extension, ABC):
