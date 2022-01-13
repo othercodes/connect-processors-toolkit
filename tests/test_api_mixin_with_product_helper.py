@@ -32,10 +32,9 @@ def test_product_helper_should_retrieve_all_product_templates(sync_client_factor
         response_factory(count=len(content), value=content)
     ])
 
-    templates = Helper(client).get_templates('PRD-183-233-565')
+    templates = Helper(client).match_product_templates('PRD-183-233-565', {})
 
-    assert isinstance(templates, ResourceSet)
-    assert templates.count() == 2
+    assert len(templates) == 2
 
 
 def test_product_helper_should_retrieve_filtered_product_templates(sync_client_factory, response_factory):
@@ -54,7 +53,6 @@ def test_product_helper_should_retrieve_filtered_product_templates(sync_client_f
         response_factory(count=len(content), value=content)
     ])
 
-    templates = Helper(client).get_templates('PRD-000-000-001', 'asset')
+    templates = Helper(client).match_product_templates('PRD-000-000-001', {'scope': 'asset'})
 
-    assert isinstance(templates, ResourceSet)
-    assert templates.count() == 1
+    assert len(templates) == 1

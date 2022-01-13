@@ -56,21 +56,27 @@ for these cases you can use the mixins provided by this package.
 
 ```python
 from connect.client import ConnectClient
-from connect.processors_toolkit.api.mixins import WithAssetHelper, WithProductHelper
+from connect.processors_toolkit.api.mixins import WithAssetHelper, WithProductHelper, WithConversationHelper
 from connect.processors_toolkit.requests import RequestBuilder
 
 
-class PurchaseFlow(WithAssetHelper, WithProductHelper):
+class PurchaseFlow(WithAssetHelper, WithProductHelper, WithConversationHelper):
     def __init__(self, client: ConnectClient):
         self.client = client
 
     def process(self, request: RequestBuilder):
         # retrieve a template. 
-        inquire_template = self.get_templates('PRD-183-233-565', 'asset', 'inquire').first()
-        activate_template = self.get_templates('PRD-183-233-565', 'asset', 'activate').first()
+        inquire_template = self.match_product_templates(
+            'PRD-183-233-565',
+            {'scope': 'asset', 'type': 'inquire'},
+        )
+        activate_template = self.match_product_templates(
+            'PRD-183-233-565',
+            {'scope': 'asset', 'type': 'activate'}
+        )
 
         # inquire the request by template id.
-        self.inquire_asset_request(request, inquire_template['id'])
+        self.inquire_asset_request(request, inquire_template[0]['id'])
 
         # fail the request
         self.fail_asset_request(request, 'The reason to fail.')
@@ -84,13 +90,16 @@ class PurchaseFlow(WithAssetHelper, WithProductHelper):
         self.update_asset_parameters_request(request)
 
         # approve the request by template id.
-        self.approve_asset_request(request, activate_template['id'])
+        self.approve_asset_request(request, activate_template[0]['id'])
 
         # get any asset by id.
         some_other_asset = self.find_asset('AS-1000-2000-3000-4000')
 
         # get any request by id.
-        some_other_request = self.fail_asset_request('PR-1000-2000-3000-4000-001')
+        some_other_request = self.find_asset_request('PR-1000-2000-3000-4000-001')
+        
+        # add a message to the main request conversation.
+        self.add_conversation_message_by_request_id(request.id(), 'Hello World Message!')
 
 ```
 
