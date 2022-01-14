@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from connect.client import AsyncConnectClient, ClientError, ConnectClient
 from connect.processors_toolkit.requests import RequestBuilder
@@ -21,6 +21,8 @@ MESSAGES = 'messages'
 REASON = 'reason'
 PARAMS = 'params'
 TIER = 'tier'
+HELPDESK = 'helpdesk'
+CASES = 'cases'
 # connect is always responding with status 400 and error code REQ_003 on all
 # bad requests, due to this I need to use the actual error list to match the
 # error description instead of the error_code.
@@ -382,3 +384,51 @@ class WithConversationHelper:
         return self.client.conversations[conversations[0]['id']](MESSAGES).post(
             payload={"text": message},
         )
+
+
+class WithHelpdeskHelper:
+    client: Union[ConnectClient, AsyncConnectClient]
+
+    def create_helpdesk_case(
+            self,
+            request: RequestBuilder,
+            subject: str,
+            description: str,
+            receiver_id: str,
+            issuer_recipients: Optional[List[Dict[str, str]]] = None,
+            case_type: str = 'technical',
+            case_priority: int = 3,
+    ) -> dict:
+        """
+        Creates a new Helpdesk Case.
+
+        :param request: The request RequestBuilder object.
+        :param subject: The subject of the case, the request id will be automatically included.
+        :param description: The description of the case.
+        :param receiver_id: The receiver account id.
+        :param issuer_recipients: The optional list of recipients.
+        :param case_type: The case type (technical or business).
+        :param case_priority: The priority (0 - low, 1 - medium, 2 - high, 3 - urgent).
+        :return:
+        """
+        case = {
+            'subject': f'{request.id()}: {subject}',
+            'description': description,
+            'priority': case_priority,
+            'type': case_type,
+            'receiver': {
+                'account': {
+                    'id': receiver_id,
+                },
+            },
+        }
+
+        if issuer_recipients is not None:
+            case.update({'issuer': {'recipients': issuer_recipients}})
+
+        if request.is_asset_request():
+            case.update({'product': {'id': request.asset().asset_product('id')}})
+        elif request.is_tier_config_request():
+            case.update({'product': {'id': request.tier_configuration().tier_configuration_product('id')}})
+
+        return self.client.ns(HELPDESK).collection(CASES).create(case)
