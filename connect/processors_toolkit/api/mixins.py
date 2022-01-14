@@ -5,6 +5,7 @@ from typing import List, Optional, Union
 from connect.client import AsyncConnectClient, ClientError, ConnectClient
 from connect.processors_toolkit.requests import RequestBuilder
 from connect.processors_toolkit.requests.assets import AssetBuilder
+from connect.processors_toolkit.requests.tier_configurations import TierConfigurationBuilder
 
 ID = 'id'
 ASSET = 'asset'
@@ -145,12 +146,174 @@ class WithAssetHelper:
         return request
 
 
+class WithTierConfigurationHelper:
+    client: Union[ConnectClient, AsyncConnectClient]
+
+    def find_tier_configuration(self, tier_configuration_id: str) -> TierConfigurationBuilder:
+        """
+        Retrieve a tier configuration by id.
+
+        :param tier_configuration_id: The tier configuration id.
+        :return: The tier configuration dictionary
+        """
+        return TierConfigurationBuilder(self.client.ns(TIER).configs[tier_configuration_id].get())
+
+    def match_tier_configuration(self, criteria: dict) -> List[dict]:
+        """
+        Get a list of tier configurations that match the provided criteria.
+
+        The valid criteria parameter is:
+            {
+                "account.company_name": "...",
+                "account.external_id": "...",
+                "account.external_uid": "...",
+                "account.id": "...",
+                "connection.id": "...",
+                "connection.type": "...",
+                "contract.id": "...",
+                "created": "...",
+                "id": "...",
+                "marketplace.id": "...",
+                "marketplace.name": "...",
+                "params.id": "...",
+                "params.value": "...",
+                "product.name": "...",
+                "status": "...",
+                "tier_level": "...",
+                "updated": "...",
+                "limit": "...",
+                "offset": "...",
+            }
+
+        :param criteria: The criteria dictionary
+        :return: The list of tier configuration dictionaries
+        """
+        resource = self.client.ns(TIER).configs
+        if len(criteria.items()) > 0:
+            resource = resource.filter(**{k: v for k, v in criteria.items() if v is not None})
+
+        return list(resource.all())
+
+    def find_tier_configuration_request(self, request_id: str) -> RequestBuilder:
+        """
+        Retrieve a tier configuration by id.
+
+        :param request_id: The tier configuration request id.
+        :return: The tier configuration request dictionary
+        """
+        return RequestBuilder(self.client.ns(TIER).config_requests[request_id].get())
+
+    def match_tier_configuration_request(self, criteria: dict) -> List[dict]:
+        """
+        Get a list of tier configuration requests that match the provided criteria.
+
+        :param criteria: The criteria dictionary
+        :return: The list of tier configuration request dictionaries
+        """
+        resource = self.client.ns(TIER).config_requests
+        if len(criteria.items()) > 0:
+            resource = resource.filter(**{k: v for k, v in criteria.items() if v is not None})
+
+        return list(resource.all())
+
+    def approve_tier_configuration_request(
+            self,
+            request: RequestBuilder,
+            template_id: str,
+            effective_date: Optional[str] = None,
+    ) -> RequestBuilder:
+        """
+        Approves the given request using the given template id.
+
+        :param request: The RequestBuilder object.
+        :param template_id: The template id to be used to approve.
+        :param effective_date: The effective date.
+        :return: The approved RequestBuilder.
+        """
+        try:
+            payload = {
+                ID: template_id,
+                EFFECTIVE_DATE: effective_date,
+            }
+
+            request = self.client.ns(TIER).config_requests[request.id()](APPROVE).post(
+                payload={TEMPLATE: {k: v for k, v in payload.items() if v is not None}},
+            )
+            return RequestBuilder(request)
+        except ClientError as e:
+            # TC_006 - Tier configuration request status transition is not allowed.
+            if ERROR_TC_INVALID_TRANSITION_STATUS in e.errors:
+                return request
+            raise
+
+    def fail_tier_configuration_request(self, request: RequestBuilder, reason: str) -> RequestBuilder:
+        """
+        Fail the given tier configuration request using the given reason.
+
+        :param request: The RequestBuilder object.
+        :param reason: The reason to fail the request.
+        :return: The failed RequestBuilder.
+        """
+        try:
+            request = self.client.ns(TIER).config_requests[request.id()](FAIL).post(
+                payload={REASON: reason},
+            )
+            return RequestBuilder(request)
+        except ClientError as e:
+            # TC_006 - Tier configuration request status transition is not allowed.
+            if ERROR_TC_INVALID_TRANSITION_STATUS in e.errors:
+                return request
+            raise
+
+    def inquire_tier_configuration_request(self, request: RequestBuilder) -> RequestBuilder:
+        """
+        Inquire the given request.
+
+        :param request: The RequestBuilder object.
+        :return: The inquired RequestBuilder.
+        """
+        try:
+            request = self.client.ns(TIER).config_requests[request.id()](INQUIRE).post()
+            return RequestBuilder(request)
+        except ClientError as e:
+            # TC_006 - Tier configuration request status transition is not allowed.
+            if ERROR_TC_INVALID_TRANSITION_STATUS in e.errors:
+                return request
+            raise
+
+    def update_tier_configuration_parameters(self, request: RequestBuilder) -> RequestBuilder:
+        """
+        Update parameters that have been changed from the given RequestBuilder.
+
+        :param request: The RequestBuilder object.
+        :return: The updated RequestBuilder.
+        """
+
+        current = self.find_tier_configuration_request(request.id())
+        # The tier configuration request parameters are stored in request.params,
+        # so in order to compute the difference we must use request.params instead
+        # of request.configuration.params. Once the update is done the values will
+        # be present in both sections: request.params and request.configuration.params
+        params = zip(
+            _prepare_parameters(current.params()),
+            _prepare_parameters(request.params()),
+        )
+
+        difference = [new for cur, new in params if cur != new]
+        if len(difference) > 0:
+            request = RequestBuilder(self.client.ns(TIER).config_requests[request.id()].update(
+                payload={PARAMS: difference},
+            ))
+
+        return request
+
+
 class WithProductHelper:
     client: Union[ConnectClient, AsyncConnectClient]
 
     def match_product_templates(self, product_id: str, criteria: dict = None) -> List[dict]:
         """
-        Get the list of templates by product id.
+        Get a list of templates by product id that match the provided criteria.
 
         The valid criteria parameter is:
             {
@@ -174,7 +337,7 @@ class WithConversationHelper:
 
     def match_conversations(self, criteria: dict) -> List[dict]:
         """
-        Match the conversations by the provided criteria.
+        Get a list of conversations that match the provided criteria.
 
         The valid criteria parameters:
             {

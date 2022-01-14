@@ -144,9 +144,7 @@ class RequestBuilder:
 
     def with_asset(self, asset: Union[dict, AssetBuilder]) -> RequestBuilder:
         asset = asset if isinstance(asset, dict) else asset.raw()
-        self._request.update({
-            'asset': merge(self._request.get('asset', {}), asset),
-        })
+        self._request.update({'asset': asset})
         return self
 
     def tier_configuration(self) -> TierConfigurationBuilder:
@@ -154,7 +152,5 @@ class RequestBuilder:
 
     def with_tier_configuration(self, configuration: Union[dict, TierConfigurationBuilder]) -> RequestBuilder:
         configuration = configuration if isinstance(configuration, dict) else configuration.raw()
-        self._request.update({
-            'configuration': merge(self._request.get('configuration', {}), configuration),
-        })
+        self._request.update({'configuration': configuration})
         return self

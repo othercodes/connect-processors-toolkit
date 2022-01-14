@@ -1,0 +1,225 @@
+{
+  "id": "TCR-145-440-906-001",
+  "type": "setup",
+  "status": "pending",
+  "configuration": {
+    "id": "TC-145-440-906",
+    "name": "Configuration of TA-1309-2722-8346",
+    "account": {
+      "id": "TA-1309-2722-8346",
+      "name": "Account name",
+      "type": "customer",
+      "external_id": "1000106",
+      "external_uid": "f3c6777a-f3d6-44b9-ad7a-8742fc497245",
+      "contact_info": {
+        "address_line1": "address line 1",
+        "address_line2": null,
+        "city": "New York",
+        "state": "NY",
+        "postal_code": "39011",
+        "country": "us",
+        "contact": {
+          "first_name": "Account Name",
+          "last_name": "Account Name",
+          "email": "Account Name@a.es",
+          "phone_number": {
+            "country_code": "+1",
+            "area_code": "122",
+            "phone_number": "12344",
+            "extension": ""
+          }
+        }
+      }
+    },
+    "product": {
+      "id": "PRD-253-077-749",
+      "icon": "/media/VA-610-138/PRD-253-077-749/media/PRD-253-077-749-logo.png",
+      "name": "Some Awesome Product",
+      "status": "published"
+    },
+    "tier_level": 1,
+    "connection": {
+      "id": "CT-7077-8496",
+      "type": "test",
+      "status": "approved",
+      "provider": {
+        "id": "PA-800-926",
+        "name": "IMC Gamma Team Provider"
+      },
+      "vendor": {
+        "id": "VA-610-138",
+        "name": "IMC Gamma Team Vendor"
+      },
+      "hub": {
+        "id": "HB-3504-5728",
+        "name": "IMC Gamma Hub"
+      },
+      "created_at": "2020-07-06T09:15:10+00:00"
+    },
+    "events": {
+      "created": {
+        "at": "2020-08-04T06:58:09+00:00"
+      },
+      "updated": {
+        "at": "2020-08-04T06:58:09+00:00"
+      }
+    },
+    "params": [
+      {
+        "id": "TIER_SIGNATURE",
+        "title": "Tier SIGNATURE",
+        "description": "The tier signature.",
+        "type": "text",
+        "scope": "tier1",
+        "phase": "ordering",
+        "constraints": {
+          "required": true,
+          "hidden": false,
+          "unique": false
+        }
+      }
+    ],
+    "open_request": {
+      "id": "TCR-145-440-906-001"
+    },
+    "status": "processing",
+    "configuration": {
+      "params": [
+        {
+          "value": "TL-927-921-448",
+          "events": {
+            "created": {
+              "at": "2020-07-13T09:52:19+00:00",
+              "by": {
+                "id": "UR-035-458-921",
+                "name": "Operator"
+              }
+            },
+            "updated": {
+              "at": "2020-07-13T09:52:19+00:00"
+            }
+          },
+          "id": "ACTIVATION_TEMPLATE_ID",
+          "title": "Marketplace Activation Template ID",
+          "description": "Marketplace Activation Template ID",
+          "type": "text",
+          "scope": "marketplace",
+          "phase": "configuration",
+          "constraints": {
+            "required": true,
+            "hidden": false,
+            "unique": false,
+            "shared": null
+          }
+        }
+      ]
+    },
+    "contract": {
+      "id": "CRD-50451-34242-49329",
+      "name": "Contract Distribution Agreement",
+      "type": "distribution"
+    },
+    "marketplace": {
+      "id": "MP-38943",
+      "name": "Demo Gamma Marketplace",
+      "icon": "/media/PA-800-926/marketplaces/MP-38943/icon.jpg"
+    }
+  },
+  "events": {
+    "created": {
+      "at": "2020-08-04T06:58:09+00:00"
+    },
+    "updated": {
+      "at": "2020-08-05T11:54:25+00:00",
+      "by": {
+        "id": "SU-183-245-858",
+        "name": "Operator"
+      }
+    },
+    "inquired": {
+      "at": "2020-08-05T09:50:10+00:00",
+      "by": {
+        "id": "SU-183-245-858",
+        "name": "Operator"
+      }
+    },
+    "pended": {
+      "at": "2020-08-05T09:50:34+00:00",
+      "by": {
+        "id": "UR-035-458-921",
+        "name": "Operator"
+      }
+    }
+  },
+  "params": [
+    {
+      "value": "",
+      "title": "Tier SIGNATURE",
+      "description": "The tier signature.",
+      "type": "text",
+      "scope": "tier1",
+      "phase": "ordering",
+      "constraints": {
+        "required": true,
+        "hidden": false,
+        "unique": false
+      },
+      "id": "TIER_SIGNATURE"
+    }
+  ],
+  "environment": "test",
+  "tiers": {
+    "tier1": {
+      "id": "TA-1309-2722-8346",
+      "name": "Account Name",
+      "type": "customer",
+      "external_id": "1000106",
+      "external_uid": "f3c6777a-f3d6-44b9-ad7a-8742fc497245",
+      "contact_info": {
+        "address_line1": "Account Name",
+        "address_line2": null,
+        "city": "New York",
+        "state": "NY",
+        "postal_code": "39011",
+        "country": "us",
+        "contact": {
+          "first_name": "Account Name",
+          "last_name": "Account Name",
+          "email": "Account Name@a.es",
+          "phone_number": {
+            "country_code": "+1",
+            "area_code": "122",
+            "phone_number": "12344",
+            "extension": ""
+          }
+        }
+      }
+    },
+    "tier2": {
+      "id": "TA-8692-9862-7378",
+      "name": "Account Name",
+      "type": "customer",
+      "external_id": "1000059",
+      "external_uid": "c1489814-e0f2-4bc7-a11a-8c115700dcad",
+      "contact_info": {
+        "address_line1": "Account Name13072 L1",
+        "address_line2": null,
+        "city": "New York",
+        "state": "NY",
+        "postal_code": "39011",
+        "country": "us",
+        "contact": {
+          "first_name": "Account Name13072 L1",
+          "last_name": "Account Name13072 L1",
+          "email": "Account Name13072L1@a.es",
+          "phone_number": {
+            "country_code": "+1",
+            "area_code": "123",
+            "phone_number": "123123",
+            "extension": ""
+          }
+        }
+      }
+    }
+  }
+}

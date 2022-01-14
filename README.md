@@ -177,16 +177,15 @@ class MyAwesomeExtension(Application):
     def process_asset_purchase_request(self, request):
         self.logger.info(f"Purchase request with id {request['id']}")
 
-        # this will make a new instance of HTTPServiceClient using 
-        # the configuration to load api_key and api_url 
-        api = self.make(HTTPServiceClient)
+        # this will make a new instance of HTTPServiceClient 
+        # using the configuration to load api_key and api_url 
+        api = self.container.get(HTTPServiceClient)
 
         return ProcessingResponse.done()
 
     def process_asset_change_request(self, request):
         self.logger.info(f"Change request with id {request['id']}")
         return ProcessingResponse.done()
-
 ```
 
 If the complexity increases you may want to define custom mapping of dependencies, in this case you can configure a
@@ -233,7 +232,7 @@ class MyAwesomeExtension(Application):
         # the container will make the PurchaseFlow injecting all required dependencies
         # even our custom HTTPServiceClient that will be injected each time some class 
         # required the keyword argument 'api_client'.
-        return self.make(PurchaseFlow).process(request)
+        return self.container.get(PurchaseFlow).process(request)
 
 ```
 
