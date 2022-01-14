@@ -173,7 +173,7 @@ class WithDispatcher:
         """
         return {}
 
-    def _dispatch(self, route: Route, not_found_controller: Type) -> Type:
+    def _route(self, route: Route, not_found_controller: Type) -> Type:
         controller = self.routes().get(route.main())
         if controller is None:
             controller = self.not_found().get(route.not_found(), not_found_controller)
@@ -190,7 +190,7 @@ class WithDispatcher:
     def dispatch_process(self, request: dict) -> ProcessingResponse:
         self.logger.debug(f"Processing request: {request}")
 
-        controller = self._dispatch(
+        controller = self._route(
             Route.for_process(request_model(request), request.get('type')),
             _ProcessFlowNotFound,
         )
@@ -201,7 +201,7 @@ class WithDispatcher:
     def dispatch_validation(self, request: dict) -> ValidationResponse:
         self.logger.debug(f"Validating request: {request}")
 
-        controller = self._dispatch(
+        controller = self._route(
             Route.for_validate(request_model(request), request.get('type')),
             _ValidationFlowNotFound,
         )
@@ -212,7 +212,7 @@ class WithDispatcher:
     def dispatch_action(self, request: dict) -> ProductActionResponse:
         self.logger.debug(f"Processing name: {request}")
 
-        controller = self._dispatch(
+        controller = self._route(
             Route.for_action('product', request.get('jwt_payload', {}).get('action_id')),
             _ActionFlowNotFound,
         )
@@ -223,7 +223,7 @@ class WithDispatcher:
     def dispatch_custom_event(self, request: dict) -> CustomEventResponse:
         self.logger.debug(f"Processing custom event: {request}")
 
-        controller = self._dispatch(
+        controller = self._route(
             Route.for_custom_event('product', request.get('body', {}).get('controller')),
             _CustomEventFlowNotFound,
         )
