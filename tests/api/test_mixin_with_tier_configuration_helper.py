@@ -16,8 +16,8 @@ class Helper(WithTierConfigurationHelper):
 
 
 BAD_REQUEST_400 = "400 Bad Request"
-ASSET_REQUEST_FILE = '/asset_request.json'
-TIER_CONFIG_REQUEST_FILE = '/tier_configuration_request.json'
+ASSET_REQUEST_FILE = '/request_asset.json'
+TIER_CONFIG_REQUEST_FILE = '/request_tier_configuration.json'
 
 
 def test_helper_should_retrieve_a_tier_configuration_by_id(sync_client_factory, response_factory):

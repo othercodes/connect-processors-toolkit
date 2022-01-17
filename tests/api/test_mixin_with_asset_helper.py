@@ -15,7 +15,7 @@ class Helper(WithAssetHelper):
 
 
 BAD_REQUEST_400 = "400 Bad Request"
-ASSET_REQUEST_FILE = '/asset_request.json'
+ASSET_REQUEST_FILE = '/request_asset.json'
 
 
 def test_asset_helper_should_retrieve_an_asset_by_id(sync_client_factory, response_factory):
