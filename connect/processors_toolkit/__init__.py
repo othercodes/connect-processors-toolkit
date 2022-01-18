@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 
 def find_by_id(elements: List[dict], element_id: str, default: Optional[dict] = None) -> Optional[dict]:
@@ -62,3 +62,34 @@ def mask(data: Union[Dict, List, Tuple, Any], to_mask: List[str]) -> Union[Dict,
         return [mask(item, to_mask) for item in data]
     else:
         return data
+
+
+def validator(rules: List[Type], values: List[Any]) -> Tuple[List[Exception], List[Any]]:
+    """
+    Validates given values using the given rules.
+
+    The list of rules must be a list of ValueObjects or a list of functions
+    that raises an Exception on error and return None on success.
+
+    def validate_name(name: str) -> None:
+        if len(name) < 3:
+            raise ValueError(f'Invalid name <{name}>.')
+
+    error, valid = validator(
+        [uuid.UUID, validate_name],
+        ['5338d5e4-6f3e-45fe-8af5-e2d96213b3f0', 'Vincent'],
+    )
+
+    :param rules: List of types that will be used to validate the values.
+    :param values: List of values to validated.
+    :return: Tuple of a list of exceptions and a list of valid values.
+    """
+    errors = []
+    valid = []
+    for rule, value in list(zip(rules, values)):
+        try:
+            result = rule(value)
+            valid.append(value if result is None else result)
+        except Exception as ex:
+            errors.append(ex)
+    return errors, valid
