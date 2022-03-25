@@ -46,6 +46,12 @@ def _prepare_parameters(updated_params: List[dict]) -> List[dict]:
     return list(map(_map, updated_params))
 
 
+def _get_new_params(resource_params: List[dict], request_params: List[dict]) -> List[dict]:
+    normalized_resource_params = _prepare_parameters(resource_params)
+    normalized_request_params = _prepare_parameters(request_params)
+    return list(filter(lambda x: x not in normalized_resource_params, normalized_request_params))
+
+
 class WithAssetHelper:
     client: Union[ConnectClient, AsyncConnectClient]
 
@@ -140,6 +146,8 @@ class WithAssetHelper:
         )
 
         difference = [new for cur, new in params if cur != new]
+        difference.extend(_get_new_params(current.params(), request.params()))
+
         if len(difference) > 0:
             request = RequestBuilder(self.client.requests[request.id()].update(
                 payload={ASSET: {PARAMS: difference}},
@@ -302,6 +310,8 @@ class WithTierConfigurationHelper:
         )
 
         difference = [new for cur, new in params if cur != new]
+        difference.extend(_get_new_params(current.params(), request.params()))
+
         if len(difference) > 0:
             request = RequestBuilder(self.client.ns(TIER).config_requests[request.id()].update(
                 payload={PARAMS: difference},
