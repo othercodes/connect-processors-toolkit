@@ -1,11 +1,8 @@
-name: Connect Processor Toolkit
+name: Test
 
 on:
-  push:
-    branches: [ '*' ]
-    tags: [ '*' ]
   pull_request:
-    branches: [ master ]
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   test:
