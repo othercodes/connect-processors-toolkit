@@ -47,9 +47,9 @@ def _prepare_parameters(updated_params: List[dict]) -> List[dict]:
 
 
 def _get_new_params(resource_params: List[dict], request_params: List[dict]) -> List[dict]:
-    normalized_resource_params = _prepare_parameters(resource_params)
+    resource_params_ides = [param.get('id') for param in resource_params]
     normalized_request_params = _prepare_parameters(request_params)
-    return list(filter(lambda x: x not in normalized_resource_params, normalized_request_params))
+    return list(filter(lambda x: x.get('id') not in resource_params_ides, normalized_request_params))
 
 
 class WithAssetHelper:
