@@ -8,7 +8,7 @@ from connect.processors_toolkit.requests import RequestBuilder
 
 
 def make_fake_logger(assertion: Callable):
-    def _assert_log(msg):
+    def _assert_log(_):
         assert assertion
 
     logger = Mock()
@@ -26,16 +26,14 @@ def test_bounded_logger_should_configure_logger_from_request_dictionary():
     helper = Helper(LoggerAdapter(Mock(), {}))
     helper.bind_logger({'id': 'PR-123-456-789'})
 
-    assert 'id' in helper.logger.extra
-    assert helper.logger.extra.get('id') == 'PR-123-456-789'
+    assert helper.logger.extra.get('request_id') == 'PR-123-456-789'
 
 
 def test_bounded_logger_should_configure_logger_from_request_builder():
     helper = Helper(LoggerAdapter(Mock(), {}))
     helper.bind_logger(RequestBuilder({'id': 'PR-123-456-789'}))
 
-    assert 'id' in helper.logger.extra
-    assert helper.logger.extra.get('id') == 'PR-123-456-789'
+    assert helper.logger.extra.get('request_id') == 'PR-123-456-789'
 
 
 def test_bounded_logger_should_not_configure_logger_from_invalid_request():

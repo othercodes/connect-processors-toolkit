@@ -7,7 +7,7 @@ class ExtensionLoggerAdapter(LoggerAdapter):
         extra.update(self.extra)
         kwargs['extra'] = extra
 
-        if 'id' in extra:
-            msg = f"{extra.get('id')} {msg}"
+        if 'request_id' in extra:
+            msg = f"{extra.get('request_id')} {msg}"
 
         return msg, kwargs
