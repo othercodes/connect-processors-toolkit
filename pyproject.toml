@@ -21,7 +21,7 @@ classifiers = []
 python = "^3.8"
 Faker = "^9.8.2"
 pinject = "^0.14.1"
-connect-extension-runner = "^25.0"
+connect-extension-runner = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"
