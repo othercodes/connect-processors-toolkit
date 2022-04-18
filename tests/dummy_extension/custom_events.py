@@ -1,9 +1,8 @@
 from connect.eaas.extension import CustomEventResponse
-from connect.processors_toolkit.configuration.mixins import WithConfigurationHelper
 from connect.processors_toolkit.application.contracts import CustomEventFlow
 
 
-class HelloWorld(CustomEventFlow, WithConfigurationHelper):
+class HelloWorld(CustomEventFlow):
     def __init__(self, logger, config, my_app_name):
         self.logger = logger
         self.config = config
