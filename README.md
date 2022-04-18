@@ -49,60 +49,6 @@ asset_id = asset.asset_id()
 subscription_id = asset.asset_param('PARAM_SUBSCRIPTION_ID', 'value')
 ```
 
-## API Mixins
-
-Working with Connect Open API Client is easy, but sometimes you need to do some repetitive code while working with it,
-for these cases you can use the mixins provided by this package.
-
-```python
-from connect.client import ConnectClient
-from connect.processors_toolkit.api.mixins import WithAssetHelper, WithProductHelper, WithConversationHelper
-from connect.processors_toolkit.requests import RequestBuilder
-
-
-class PurchaseFlow(WithAssetHelper, WithProductHelper, WithConversationHelper):
-    def __init__(self, client: ConnectClient):
-        self.client = client
-
-    def process(self, request: RequestBuilder):
-        # retrieve a template. 
-        inquire_template = self.match_product_templates(
-            'PRD-183-233-565',
-            {'scope': 'asset', 'type': 'inquire'},
-        )
-        activate_template = self.match_product_templates(
-            'PRD-183-233-565',
-            {'scope': 'asset', 'type': 'activate'}
-        )
-
-        # inquire the request by template id.
-        self.inquire_asset_request(request, inquire_template[0]['id'])
-
-        # fail the request
-        self.fail_asset_request(request, 'The reason to fail.')
-
-        # change the parameters of the request.
-        asset = request.asset()
-        asset.with_asset_param('PARAM_SUBSCRIPTION_ID', 'new-subscription-id')
-        request.with_asset(asset)
-
-        # update the changed parameters.
-        self.update_asset_parameters_request(request)
-
-        # approve the request by template id.
-        self.approve_asset_request(request, activate_template[0]['id'])
-
-        # get any asset by id.
-        some_other_asset = self.find_asset('AS-1000-2000-3000-4000')
-
-        # get any request by id.
-        some_other_request = self.find_asset_request('PR-1000-2000-3000-4000-001')
-        
-        # add a message to the main request conversation.
-        self.add_conversation_message_by_request_id(request.id(), 'Hello World Message!')
-
-```
-
 ## Logger Mixins
 
 Sometimes you need to log all the time the request id in each log line, to avoid repeating all the time the id string
@@ -125,29 +71,6 @@ class PurchaseFlow(WithBoundedLogger):
         self.bind_logger(request)
 
         self.logger.info('Hello world')  # output: PR-1000-2000-3000-4000-001 Hello world
-
-```
-
-## Configuration Mixins
-
-We can also use the WithConfigurationHelper to easily access to the configuration.
-
-```python
-from typing import Dict
-from connect.processors_toolkit.configuration.mixins import WithConfigurationHelper
-from connect.processors_toolkit.requests import RequestBuilder
-
-
-class PurchaseFlow(WithConfigurationHelper):
-    def __init__(self, config: Dict[str, str]):
-        self.config = config
-
-    def process(self, request: RequestBuilder):
-        # access to configuration by key.
-        api_key = self.configuration('API_KEY')
-
-        # this will raise a MissingConfigurationParameterError exception as the key is missing.
-        missing = self.configuration('MISSING_KEY')
 
 ```
 
