@@ -10,6 +10,8 @@ from connect.eaas.extension import (
     ProductActionResponse,
     ValidationResponse,
 )
+from connect.processors_toolkit.application.container import DependencyBuildingFailure
+from connect.processors_toolkit.requests.exceptions import MissingParameterError
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
 from connect.processors_toolkit.application import Container
 from connect.processors_toolkit.application.contracts import (
@@ -19,6 +21,8 @@ from connect.processors_toolkit.application.contracts import (
     ValidationFlow,
 )
 from connect.processors_toolkit.requests import request_model, RequestBuilder
+
+ERROR_CONTROLLER_BOOTSTRAP = "{error} on bootstrapping controller {controller} due to {msg}"
 
 
 class _ProcessFlowNotFound(ProcessingFlow):
@@ -132,13 +136,16 @@ class WithDispatcher:
     def routes(self) -> Dict[str, Type]:
         """
         Maps the product flow controllers by:
-            <scope>.<process-type>.<name> and <Class Type>.
+            <scope>.<process-type>.<process-name> and <Class Type>.
 
         - The available scope types are: asset, tier-config, product.
-        - The available process types are: process, custom-event and name.
-        - The available request types are: purchase, change, suspend, cancel... or an
-        name or custom event name.
+        - The available process types are: process, validate, custom-event and action.
+        - The available process names are:
+            - Any request type: purchase, change, suspend, cancel, etc.
+            - Any valid string (no spaces allowed) that identifies a custom
+            event or a product action.
 
+        Example:
         {
             'asset.process.purchase': PurchaseFlow,
             'asset.process.change': ChangeFlow,
@@ -146,7 +153,7 @@ class WithDispatcher:
             'tier-config.process.setup': ValidatePurchaseFlow,
             'asset.validate.purchase': ValidatePurchaseFlow,
             'product.custom-event.say-hello': SayHelloCustomEventFlow,
-            'product.name.sso': SSOActionFlow,
+            'product.action.sso': SSOActionFlow,
         }
 
         :return: The route dictionary.
@@ -155,18 +162,19 @@ class WithDispatcher:
 
     def not_found(self) -> Dict[str, Type]:
         """
-        Maps the product flow controllers by on 404 not found:
-            <scope>.<process-type>.<name> and <Class Type>.
+        Maps the product flow controllers for 404 not found:
+            <scope>.<process-type> and <Class Type>.
 
         - The available scope types are: asset, tier-config, product.
         - The available process types are: process, validate, custom-event and action.
 
+        Default values:
         {
             'asset.process': _ProcessFlowNotFound,
             'tier-config.process': _ProcessFlowNotFound,
             'asset.validate': ValidatePurchaseFlow,
             'product.custom-event': _CustomEventFlowNotFound,
-            'product.name': _ActionFlowNotFound,
+            'product.action': _ActionFlowNotFound,
         }
 
         :return: The route dictionary.
@@ -187,7 +195,7 @@ class WithDispatcher:
 
         return instance
 
-    def dispatch_process(self, request: dict) -> ProcessingResponse:
+    def dispatch_process(self, request: dict, reschedule_time: int = 3600) -> ProcessingResponse:
         self.logger.debug(f"Processing request: {request}")
 
         controller = self._route(
@@ -196,7 +204,20 @@ class WithDispatcher:
         )
 
         self.logger.debug(f"Dispatching request using {controller} controller.")
-        return self._make(controller, request).process(RequestBuilder(request))
+
+        try:
+            instance = self._make(controller, request)
+        except (MissingParameterError, DependencyBuildingFailure) as e:
+            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
+                error=e.__class__.__name__,
+                controller=controller,
+                msg=str(e),
+            ))
+            # If the controller cannot be instantiated due to missing parameters or
+            # dependency building issues, we just need to reschedule the request.
+            return ProcessingResponse.slow_process_reschedule(countdown=reschedule_time)
+
+        return instance.process(RequestBuilder(request))
 
     def dispatch_validation(self, request: dict) -> ValidationResponse:
         self.logger.debug(f"Validating request: {request}")
@@ -207,7 +228,22 @@ class WithDispatcher:
         )
 
         self.logger.debug(f"Validating request using {controller} controller.")
-        return self._make(controller, request).validate(RequestBuilder(request))
+
+        try:
+            instance = self._make(controller, request)
+        except (MissingParameterError, DependencyBuildingFailure) as e:
+            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
+                error=e.__class__.__name__,
+                controller=controller,
+                msg=str(e),
+            ))
+            # If the dynamic validation cannot be executed successfully due to controller
+            # instantiation issues, just return the actual request assuming the ordering
+            # parameters are valid, the actual purchase, change, etc. process will inquire
+            # the request if there are some problem with the parameters.
+            return ValidationResponse.done(request)
+
+        return instance.validate(RequestBuilder(request))
 
     def dispatch_action(self, request: dict) -> ProductActionResponse:
         self.logger.debug(f"Processing name: {request}")
@@ -218,7 +254,19 @@ class WithDispatcher:
         )
 
         self.logger.debug(f"Dispatching action using {controller} controller.")
-        return self._make(controller, request).handle(request)
+
+        try:
+            instance = self._make(controller, request)
+        except (MissingParameterError, DependencyBuildingFailure) as e:
+            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
+                error=e.__class__.__name__,
+                controller=controller,
+                msg=str(e),
+            ))
+            # Return a 500 status code on controller instantiation.
+            return ProductActionResponse.done(http_status=500)
+
+        return instance.handle(request)
 
     def dispatch_custom_event(self, request: dict) -> CustomEventResponse:
         self.logger.debug(f"Processing custom event: {request}")
@@ -229,4 +277,16 @@ class WithDispatcher:
         )
 
         self.logger.debug(f"Dispatching custom event using {controller} controller.")
-        return self._make(controller, request).handle(request)
+
+        try:
+            instance = self._make(controller, request)
+        except (MissingParameterError, DependencyBuildingFailure) as e:
+            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
+                error=e.__class__.__name__,
+                controller=controller,
+                msg=str(e),
+            ))
+            # Return a 500 status code on controller instantiation.
+            return CustomEventResponse.done(http_status=500)
+
+        return instance.handle(request)
