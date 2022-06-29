@@ -18,12 +18,18 @@ class Dependencies:
     Dependency declarations.
 
     to_class:
-        Define a dependency binding the dependency key to a certain class.
-            dependencies.to_class('request_builder', RequestBuilder)
+        Define a dependency binding between a key to a class.
+            > dependencies.to_class('request_builder', RequestBuilder)
 
     to_instance:
         Define a dependency binding the dependency key to a certain instance.
-            dependencies.to_class('service_api_key', 'XXXXXXXXXXX')
+            > dependencies.to_class('service_api_key', 'XXXXXXXXXXX')
+
+    provide:
+        Define a dependency binding between a key and a provider function.
+            > dependencies.provide('my_complex_value', make_complex_value)
+            where make_complex_value is a function that will return the
+            complex value.
 
     bind:
         Raw dependency binding.
@@ -44,6 +50,10 @@ class Dependencies:
     def to_instance(self, name: str, thing: Any) -> Dependencies:
         return self.bind(name, BindType.TO_INSTANCE, thing)
 
+    def provider(self, name: str, provider: Callable):  # pragma: no cover
+        self.binds.update({name: provider})
+        return self
+
 
 class DependencyBuildingFailure(Exception):
     pass
@@ -61,7 +71,10 @@ class Container:
 
             def configure(self, bind):
                 for name, dependency in self.__dependencies.binds.items():
-                    bind(name, **dependency)
+                    if isinstance(dependency, Callable):
+                        setattr(self.__class__, f'provide_{name}', dependency)
+                    else:
+                        bind(name, **dependency)
 
         self.__container = pinject.new_object_graph(
             binding_specs=[__DISpec(dependencies)],
