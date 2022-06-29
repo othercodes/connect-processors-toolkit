@@ -26,13 +26,19 @@ def test_application_should_make_required_flow_controller(sync_client_factory, l
 
 
 def test_application_should_make_required_flow_controller_with_custom_dependencies(sync_client_factory, logger):
+    def provide_complex_value(self):
+        return 'my-very-complex-value'
+
     class MyExtensionWithDependencies(Application):
         def dependencies(self) -> Dependencies:
-            return Dependencies().to_class('api_client', SomeAPIClient)
+            return Dependencies() \
+                .to_class('api_client', SomeAPIClient) \
+                .provider('complex_value', provide_complex_value)
 
     class SomeAPIClient:
-        def __init__(self, api_key):
+        def __init__(self, api_key, complex_value):
             self.api_key = api_key
+            self.complex_value = complex_value
 
     class SampleFlowWithService(ProcessingFlow):
         def __init__(self, api_client):
@@ -50,6 +56,7 @@ def test_application_should_make_required_flow_controller_with_custom_dependenci
     assert isinstance(flow, SampleFlowWithService)
     assert isinstance(flow, ProcessingFlow)
     assert flow.api_client.api_key == config['API_KEY']
+    assert flow.api_client.complex_value == 'my-very-complex-value'
 
 
 def test_application_should_raise_exception_on_building_dependencies(sync_client_factory, logger):
