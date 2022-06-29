@@ -1,84 +1,17 @@
 from __future__ import annotations
 
-import pinject
-from pinject.errors import NothingInjectableForArgError
-
-from enum import Enum, unique
 from abc import ABC
 from logging import LoggerAdapter
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional, Union
 
 from connect.client import AsyncConnectClient, ConnectClient
 from connect.eaas.extension import Extension
-
-
-@unique
-class BindType(Enum):
-    TO_CLASS = 'to_class'
-    TO_INSTANCE = 'to_instance'
-
-
-class Dependencies:
-    """
-    Dependency declarations.
-
-    to_class:
-        Define a dependency binding the dependency key to a certain class.
-            dependencies.to_class('request_builder', RequestBuilder)
-
-    to_instance:
-        Define a dependency binding the dependency key to a certain instance.
-            dependencies.to_class('service_api_key', 'XXXXXXXXXXX')
-
-    bind:
-        Raw dependency binding.
-            dependencies.bind('service_api_key', BindType.TO_INSTANCE, 'XXXXXXXXXXX')
-
-    """
-
-    def __init__(self, dependencies: Optional[dict] = None):
-        self.binds = {} if dependencies is None else dependencies
-
-    def bind(self, name: str, to: BindType, thing: Any) -> Dependencies:
-        self.binds.update({name: {to.value: thing}})
-        return self
-
-    def to_class(self, name: str, thing: Any) -> Dependencies:
-        return self.bind(name, BindType.TO_CLASS, thing)
-
-    def to_instance(self, name: str, thing: Any) -> Dependencies:
-        return self.bind(name, BindType.TO_INSTANCE, thing)
-
-
-class DependencyBuildingFailure(Exception):
-    pass
-
-
-class Container:
-    """
-    Dependency Container based in the PInject project.
-    """
-
-    def __init__(self, dependencies: Dependencies):
-        class __DISpec(pinject.BindingSpec):
-            def __init__(self, dependencies: Dependencies):
-                self.__dependencies = dependencies
-
-            def configure(self, bind):
-                for name, dependency in self.__dependencies.binds.items():
-                    bind(name, **dependency)
-
-        self.__container = pinject.new_object_graph(
-            binding_specs=[__DISpec(dependencies)],
-            # disable the auto-search for implicit bindings.
-            modules=None,
-        )
-
-    def get(self, cls) -> Any:
-        try:
-            return self.__container.provide(cls)
-        except NothingInjectableForArgError as e:
-            raise DependencyBuildingFailure(str(e))
+from connect.processors_toolkit.application.container import (  # noqa: F401
+    Container,
+    Dependencies,
+    DependencyBuildingFailure,
+)
+from connect.processors_toolkit.requests import RequestBuilder
 
 
 class Application(Extension, ABC):
@@ -98,14 +31,42 @@ class Application(Extension, ABC):
     ):
         super().__init__(client, logger, config)
 
-        dependencies = self.dependencies() if dependencies is None else dependencies
-        dependencies.to_instance('config', config)
-        dependencies.to_instance('client', client)
-        dependencies.to_instance('logger', logger)
+        self.__dependencies = self.dependencies() if dependencies is None else dependencies
+        self.__dependencies.to_instance('config', config)
+        self.__dependencies.to_instance('client', client)
+        self.__dependencies.to_instance('logger', logger)
         for key, value in config.items():
-            dependencies.to_instance(key.lower(), value.strip())
+            self.__dependencies.to_instance(key.lower(), value.strip())
 
-        self.container = Container(dependencies)
+        self.__container = Container.deferred()
+
+    @property
+    def container(self) -> Container:
+        """
+        Container Accessor. If the container is deferred this method
+        will resolve it injecting the dependencies.
+
+        :return: Container
+        """
+        if callable(self.__container):
+            # if the container is callable, inject the dependencies
+            # to the callable and resolve it, the
+            self.__container = self.__container(self.__dependencies)
+
+        return self.__container
 
     def dependencies(self) -> Dependencies:
         return Dependencies()
+
+    def with_request(self, request: dict):
+        """
+        Attach the given request to the dependency spec and set
+        the container as a deferred container, so it can resolve
+        new dependencies using the newly attached request.
+
+        :param request: dict The request to attach to the dependencies.
+        :return: Application The application with the attached request.
+        """
+        self.__dependencies.to_instance('request', RequestBuilder(request))
+        self.__container = Container.deferred()
+        return self
