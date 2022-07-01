@@ -11,6 +11,7 @@ from tests.dummy_extension.actions import SSO
 from tests.dummy_extension.custom_events import HelloWorld
 from tests.dummy_extension.extension import AbstractExtension
 from tests.dummy_extension.flows import Purchase as PurchaseFlow
+from tests.dummy_extension.schedules import RefreshToken
 from tests.dummy_extension.validations import Purchase as PurchaseValidationFlow
 
 
@@ -181,3 +182,34 @@ def test_dispatcher_should_dispatch_process_not_found_flow_controller(sync_clien
 
     with pytest.raises(NotImplementedError):
         extension.validate_asset_purchase_request(request.raw())
+
+
+def test_dispatcher_should_dispatch_schedule_flow_controller(sync_client_factory, logger):
+    client = sync_client_factory([])
+    config = {}
+
+    request = {"product_id": "PRD-000-000-000"}
+
+    class MyDummyExtension(AbstractExtension):
+        def routes(self) -> Dict[str, Type]:
+            return {
+                'product.schedule.refresh-token': RefreshToken,
+            }
+
+    extension = MyDummyExtension(client, logger, config)
+    response = extension.execute_refresh_token_schedule(request)
+
+    assert response.status == 'success'
+
+
+def test_dispatcher_should_dispatch_schedule_not_found_flow_controller(sync_client_factory, logger):
+    client = sync_client_factory([])
+    config = {}
+
+    class MyDummyExtension(AbstractExtension):
+        pass
+
+    extension = MyDummyExtension(client, logger, config)
+
+    with pytest.raises(NotImplementedError):
+        extension.execute_refresh_token_schedule({})
