@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
 
 from connect.processors_toolkit import find_by_id, merge
@@ -27,8 +28,8 @@ class RequestBuilder:
     def __str__(self) -> str:
         return str(self._request)
 
-    def raw(self) -> dict:
-        return self._request
+    def raw(self, deep_copy: bool = False) -> dict:
+        return deepcopy(self._request) if deep_copy else self._request
 
     def request_type(self) -> str:
         return request_model(self.raw())

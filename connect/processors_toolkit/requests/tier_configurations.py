@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, List, Optional, Union
 
 from connect.processors_toolkit import find_by_id, merge
@@ -26,8 +27,8 @@ class TierConfigurationBuilder:
     def __str__(self) -> str:
         return str(self._tier_config)
 
-    def raw(self) -> dict:
-        return self._tier_config
+    def raw(self, deep_copy: bool = False) -> dict:
+        return deepcopy(self._tier_config) if deep_copy else self._tier_config
 
     def without(self, key: str) -> TierConfigurationBuilder:
         self._tier_config.pop(key, None)

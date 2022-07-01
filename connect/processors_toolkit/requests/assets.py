@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Union
 
 from connect.processors_toolkit import find_by_id, merge
@@ -26,8 +27,8 @@ class AssetBuilder:
     def __str__(self) -> str:
         return str(self._asset)
 
-    def raw(self) -> dict:
-        return self._asset
+    def raw(self, deep_copy: bool = False) -> dict:
+        return deepcopy(self._asset) if deep_copy else self._asset
 
     def without(self, key: str) -> AssetBuilder:
         self._asset.pop(key, None)
