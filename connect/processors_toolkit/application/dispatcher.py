@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from logging import LoggerAdapter
-from typing import Dict, Type, Union
+from typing import Callable, Dict, Type, Union
 
 from connect.eaas.extension import (
     CustomEventResponse,
@@ -22,7 +22,19 @@ from connect.processors_toolkit.application.contracts import (
 )
 from connect.processors_toolkit.requests import request_model, RequestBuilder
 
-ERROR_CONTROLLER_BOOTSTRAP = "{error} on bootstrapping controller {controller} due to {msg}"
+Controller = Union[
+    ProcessingFlow,
+    ValidationFlow,
+    CustomEventFlow,
+    ProductActionFlow,
+]
+
+TaskResponse = Union[
+    ProcessingResponse,
+    ValidationResponse,
+    ProductActionResponse,
+    CustomEventResponse,
+]
 
 
 class _ProcessFlowNotFound(ProcessingFlow):
@@ -118,9 +130,6 @@ class Route:
         return f"{self.scope}.{self.process}.{self.name}"
 
 
-Controller = Union[ProcessingFlow, ValidationFlow, CustomEventFlow, ProductActionFlow]
-
-
 class WithDispatcher:
     """
     Dispatch the incoming request to the correct flow controller class based in the
@@ -181,112 +190,90 @@ class WithDispatcher:
         """
         return {}
 
-    def _route(self, route: Route, not_found_controller: Type) -> Type:
+    def __route(self, route: Route, not_found_controller: Type) -> Type:
         controller = self.routes().get(route.main())
         if controller is None:
             controller = self.not_found().get(route.not_found(), not_found_controller)
 
         return controller
 
-    def _make(self, controller: Type, request: dict) -> Controller:
+    def __make(self, controller: Type, request: dict) -> Controller:
         instance = self.container.get(controller)
         if issubclass(controller, WithBoundedLogger):
             instance.bind_logger(request)
 
         return instance
 
-    def dispatch_process(self, request: dict, reschedule_time: int = 3600) -> ProcessingResponse:
-        self.logger.debug(f"Processing request: {request}")
+    def __dispatch(
+            self,
+            request: dict,
+            execution_type: str,
+            route: Route,
+            not_found_controller: Type,
+            on_bootstrap_error: Callable[[Exception, dict], TaskResponse],
+            execute: Callable[[Controller, dict], TaskResponse],
+    ) -> TaskResponse:
+        self.logger.debug(f"Processing {execution_type}: {request}")
 
-        controller = self._route(
+        controller = self.__route(route, not_found_controller)
+
+        try:
+            self.logger.debug(f"Loading {controller} {execution_type} controller.")
+            instance = self.__make(controller, request)
+
+        except (MissingParameterError, DependencyBuildingFailure) as e:
+            self.logger.error("{error} on bootstrapping controller {controller} due to {msg}".format(
+                error=e.__class__.__name__,
+                controller=controller,
+                msg=str(e),
+            ))
+            return on_bootstrap_error(e, request)
+
+        self.logger.debug(f"Dispatching {execution_type} using {controller} controller.")
+        return execute(instance, request)
+
+    def dispatch_process(self, request: dict, reschedule_time: int = 3600) -> ProcessingResponse:
+        return self.__dispatch(
+            request,
+            'request',
             Route.for_process(request_model(request), request.get('type')),
             _ProcessFlowNotFound,
-        )
-
-        self.logger.debug(f"Dispatching request using {controller} controller.")
-
-        try:
-            instance = self._make(controller, request)
-        except (MissingParameterError, DependencyBuildingFailure) as e:
-            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
-                error=e.__class__.__name__,
-                controller=controller,
-                msg=str(e),
-            ))
             # If the controller cannot be instantiated due to missing parameters or
             # dependency building issues, we just need to reschedule the request.
-            return ProcessingResponse.slow_process_reschedule(countdown=reschedule_time)
-
-        return instance.process(RequestBuilder(request))
-
-    def dispatch_validation(self, request: dict) -> ValidationResponse:
-        self.logger.debug(f"Validating request: {request}")
-
-        controller = self._route(
-            Route.for_validate(request_model(request), request.get('type')),
-            _ValidationFlowNotFound,
+            lambda _, __: ProcessingResponse.slow_process_reschedule(countdown=reschedule_time),
+            lambda ctrl, req: ctrl.process(RequestBuilder(req)),
         )
 
-        self.logger.debug(f"Validating request using {controller} controller.")
-
-        try:
-            instance = self._make(controller, request)
-        except (MissingParameterError, DependencyBuildingFailure) as e:
-            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
-                error=e.__class__.__name__,
-                controller=controller,
-                msg=str(e),
-            ))
+    def dispatch_validation(self, request: dict) -> ValidationResponse:
+        return self.__dispatch(
+            request,
+            'validation',
+            Route.for_validate(request_model(request), request.get('type')),
+            _ValidationFlowNotFound,
             # If the dynamic validation cannot be executed successfully due to controller
             # instantiation issues, just return the actual request assuming the ordering
             # parameters are valid, the actual purchase, change, etc. process will inquire
             # the request if there are some problem with the parameters.
-            return ValidationResponse.done(request)
-
-        return instance.validate(RequestBuilder(request))
+            lambda _, __: ValidationResponse.done(request),
+            lambda ctrl, req: ctrl.validate(RequestBuilder(req)),
+        )
 
     def dispatch_action(self, request: dict) -> ProductActionResponse:
-        self.logger.debug(f"Processing name: {request}")
-
-        controller = self._route(
+        return self.__dispatch(
+            request, 'action',
             Route.for_action('product', request.get('jwt_payload', {}).get('action_id')),
             _ActionFlowNotFound,
-        )
-
-        self.logger.debug(f"Dispatching action using {controller} controller.")
-
-        try:
-            instance = self._make(controller, request)
-        except (MissingParameterError, DependencyBuildingFailure) as e:
-            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
-                error=e.__class__.__name__,
-                controller=controller,
-                msg=str(e),
-            ))
             # Return a 500 status code on controller instantiation.
-            return ProductActionResponse.done(http_status=500)
-
-        return instance.handle(request)
+            lambda _, __: ProductActionResponse.done(http_status=500),
+            lambda ctrl, req: ctrl.handle(req),
+        )
 
     def dispatch_custom_event(self, request: dict) -> CustomEventResponse:
-        self.logger.debug(f"Processing custom event: {request}")
-
-        controller = self._route(
+        return self.__dispatch(
+            request, 'custom event',
             Route.for_custom_event('product', request.get('body', {}).get('controller')),
             _CustomEventFlowNotFound,
-        )
-
-        self.logger.debug(f"Dispatching custom event using {controller} controller.")
-
-        try:
-            instance = self._make(controller, request)
-        except (MissingParameterError, DependencyBuildingFailure) as e:
-            self.logger.error(ERROR_CONTROLLER_BOOTSTRAP.format(
-                error=e.__class__.__name__,
-                controller=controller,
-                msg=str(e),
-            ))
             # Return a 500 status code on controller instantiation.
-            return CustomEventResponse.done(http_status=500)
-
-        return instance.handle(request)
+            lambda _, __: CustomEventResponse.done(http_status=500),
+            lambda ctrl, req: ctrl.handle(req),
+        )
