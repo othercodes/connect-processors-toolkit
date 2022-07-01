@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from logging import LoggerAdapter
-from typing import Callable, Dict, Type, Union
+from typing import Callable, Dict, List, Type, Union
 
 from connect.eaas.extension import (
     CustomEventResponse,
     ProcessingResponse,
     ProductActionResponse,
+    ScheduledExecutionResponse,
     ValidationResponse,
 )
 from connect.processors_toolkit.application.container import DependencyBuildingFailure
@@ -18,6 +19,7 @@ from connect.processors_toolkit.application.contracts import (
     CustomEventFlow,
     ProcessingFlow,
     ProductActionFlow,
+    ScheduledFlow,
     ValidationFlow,
 )
 from connect.processors_toolkit.requests import request_model, RequestBuilder
@@ -27,6 +29,7 @@ Controller = Union[
     ValidationFlow,
     CustomEventFlow,
     ProductActionFlow,
+    ScheduledFlow,
 ]
 
 TaskResponse = Union[
@@ -34,6 +37,7 @@ TaskResponse = Union[
     ValidationResponse,
     ProductActionResponse,
     CustomEventResponse,
+    ScheduledExecutionResponse,
 ]
 
 
@@ -81,6 +85,17 @@ class _ActionFlowNotFound(ProductActionFlow):
         return ProductActionResponse.done(http_status=404)
 
 
+class _ScheduledFlowNotFound(ScheduledFlow):
+    def handle(self, request: dict) -> ScheduledExecutionResponse:
+        """
+        Handles the request in the case no flow controller match.
+
+        :param request:
+        :return: ScheduledExecutionResponse
+        """
+        raise NotImplementedError()
+
+
 @dataclass
 class Route:
     scope: str
@@ -95,13 +110,13 @@ class Route:
     PROCESS_VALIDATE = 'validate'
     PROCESS_CUSTOM_EVENT = 'custom-event'
     PROCESS_ACTION = 'action'
+    PROCESS_SCHEDULE = 'schedule'
 
     def __post_init__(self):
-        if self.scope not in [self.SCOPE_ASSET, self.SCOPE_TIER_CONFIG, self.SCOPE_PRODUCT]:
+        if self.scope not in self.scopes():
             raise ValueError(f'Invalid route scope value <{self.scope}>.')
 
-        if self.process not in [self.PROCESS_PROCESS, self.PROCESS_VALIDATE,
-                                self.PROCESS_CUSTOM_EVENT, self.PROCESS_ACTION]:
+        if self.process not in self.processes():
             raise ValueError(f'Invalid route process value <{self.process}>.')
 
         if ' ' in self.name:
@@ -122,6 +137,26 @@ class Route:
     @staticmethod
     def for_action(scope: str, action: str) -> Route:
         return Route(scope, Route.PROCESS_ACTION, action)
+
+    @staticmethod
+    def for_schedule(scope: str, action: str) -> Route:
+        return Route(scope, Route.PROCESS_SCHEDULE, action)
+
+    def scopes(self) -> List[str]:
+        return [
+            self.SCOPE_ASSET,
+            self.SCOPE_TIER_CONFIG,
+            self.SCOPE_PRODUCT,
+        ]
+
+    def processes(self) -> List[str]:
+        return [
+            self.PROCESS_PROCESS,
+            self.PROCESS_VALIDATE,
+            self.PROCESS_CUSTOM_EVENT,
+            self.PROCESS_ACTION,
+            self.PROCESS_SCHEDULE,
+        ]
 
     def not_found(self) -> str:
         return f"{self.scope}.{self.process}"
@@ -148,11 +183,11 @@ class WithDispatcher:
             <scope>.<process-type>.<process-name> and <Class Type>.
 
         - The available scope types are: asset, tier-config, product.
-        - The available process types are: process, validate, custom-event and action.
+        - The available process types are: process, validate, custom-event, action and schedule.
         - The available process names are:
             - Any request type: purchase, change, suspend, cancel, etc.
             - Any valid string (no spaces allowed) that identifies a custom
-            event or a product action.
+            event, product action or schedule process.
 
         Example:
         {
@@ -163,6 +198,7 @@ class WithDispatcher:
             'asset.validate.purchase': ValidatePurchaseFlow,
             'product.custom-event.say-hello': SayHelloCustomEventFlow,
             'product.action.sso': SSOActionFlow,
+            'product.schedule.refresh-token': RefreshTokenScheduleFlow,
         }
 
         :return: The route dictionary.
@@ -184,6 +220,7 @@ class WithDispatcher:
             'asset.validate': ValidatePurchaseFlow,
             'product.custom-event': _CustomEventFlowNotFound,
             'product.action': _ActionFlowNotFound,
+            'product.schedule': _ScheduleFlowNotFound,
         }
 
         :return: The route dictionary.
@@ -260,7 +297,8 @@ class WithDispatcher:
 
     def dispatch_action(self, request: dict) -> ProductActionResponse:
         return self.__dispatch(
-            request, 'action',
+            request,
+            'action',
             Route.for_action('product', request.get('jwt_payload', {}).get('action_id')),
             _ActionFlowNotFound,
             # Return a 500 status code on controller instantiation.
@@ -270,10 +308,21 @@ class WithDispatcher:
 
     def dispatch_custom_event(self, request: dict) -> CustomEventResponse:
         return self.__dispatch(
-            request, 'custom event',
+            request,
+            'custom event',
             Route.for_custom_event('product', request.get('body', {}).get('controller')),
             _CustomEventFlowNotFound,
             # Return a 500 status code on controller instantiation.
             lambda _, __: CustomEventResponse.done(http_status=500),
+            lambda ctrl, req: ctrl.handle(req),
+        )
+
+    def dispatch_schedule_process(self, request: dict, schedule_task: str) -> ScheduledExecutionResponse:
+        return self.__dispatch(
+            request,
+            'schedule',
+            Route.for_schedule('product', schedule_task),
+            _ScheduledFlowNotFound,
+            lambda _, __: ScheduledExecutionResponse.done(),
             lambda ctrl, req: ctrl.handle(req),
         )
