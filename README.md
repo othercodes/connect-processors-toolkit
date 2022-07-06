@@ -48,6 +48,28 @@ asset = request.asset()
 asset_id = asset.asset_id()
 subscription_id = asset.asset_param('PARAM_SUBSCRIPTION_ID', 'value')
 ```
+## Configuration Mixins
+
+We can also use the WithConfigurationHelper to easily access to the configuration.
+
+```python
+from typing import Dict
+from connect.processors_toolkit.configuration.mixins import WithConfigurationHelper
+from connect.processors_toolkit.requests import RequestBuilder
+
+
+class PurchaseFlow(WithConfigurationHelper):
+    def __init__(self, config: Dict[str, str]):
+        self.config = config
+
+    def process(self, request: RequestBuilder):
+        # access to configuration by key.
+        api_key = self.configuration('API_KEY')
+
+        # this will raise a MissingConfigurationParameterError exception as the key is missing.
+        missing = self.configuration('MISSING_KEY')
+
+```
 
 ## Logger Mixins
 
