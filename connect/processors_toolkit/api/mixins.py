@@ -5,10 +5,9 @@
 #
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union, Callable, Any
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from connect.client import AsyncConnectClient, ClientError, ConnectClient
-
 from connect.processors_toolkit.requests import RequestBuilder
 from connect.processors_toolkit.requests.assets import AssetBuilder
 
@@ -20,30 +19,11 @@ APPROVED = 'approved'
 INQUIRING = 'inquiring'
 FAILED = 'failed'
 TEMPLATE_ID = 'template_id'
+TIER = 'tier'
 ACTIVATION_TILE = 'activation_tile'
 EFFECTIVE_DATE = 'effective_date'
 REASON = 'reason'
 PARAMS = 'params'
-
-
-def _prepare_parameters(updated_params: List[dict]) -> List[dict]:
-    def _key(param: dict) -> str:
-        return 'value' if param.get('structured_value') is None else 'structured_value'
-
-    def _map(param: dict) -> dict:
-        return {
-            'id': param.get('id'),
-            _key(param): param.get(_key(param), None),
-            'value_error': param.get('value_error', ''),
-        }
-
-    return list(map(_map, updated_params))
-
-
-def _get_new_params(resource_params: List[dict], request_params: List[dict]) -> List[dict]:
-    resource_params_ids = [param.get('id') for param in resource_params]
-    normalized_request_params = _prepare_parameters(request_params)
-    return list(filter(lambda x: x.get('id') not in resource_params_ids, normalized_request_params))
 
 
 class WithAssetHelper:
@@ -135,7 +115,7 @@ class WithAssetHelper:
         :return: The inquired RequestBuilder.
         """
         payload = {
-            TEMPLATE_ID: template_id
+            TEMPLATE_ID: template_id,
         }
 
         return self._update_asset_request_status(
@@ -146,28 +126,41 @@ class WithAssetHelper:
             on_success,
         )
 
-    def update_asset_parameters_request(self, request: RequestBuilder) -> RequestBuilder:
+    def update_asset_request_parameters(
+            self,
+            request: RequestBuilder,
+            parameters: List[Dict[str, Any]],
+            on_error: Optional[Callable[[ClientError], Any]] = None,
+            on_success: Optional[Callable[[RequestBuilder], Any]] = None,
+    ) -> Any:
         """
-        Update parameters that have been changed from the given RequestBuilder.
+        Update Asset parameters
 
         :param request: The RequestBuilder object.
-        :return: The updated RequestBuilder.
+        :param parameters: The parameters to update in for the Asset.
+        :param on_error: Callback to execute when we got an error.
+        :param on_success: Callback to execute when action finished successfully.
+        :return: The request
         """
-        current = self.find_asset_request(request.id())
-        params = zip(
-            _prepare_parameters(current.asset().asset_params()),
-            _prepare_parameters(request.asset().asset_params()),
-        )
+        if on_success is None:
+            def on_success(request_: RequestBuilder):
+                return request_
 
-        difference = [new for cur, new in params if cur != new]
-        difference.extend(_get_new_params(current.params(), request.params()))
+        if on_error is None:
+            def on_error(error: ClientError):
+                raise error
+        try:
+            updated = RequestBuilder(self.client.requests[request.id()].update(payload={
+                "asset": {
+                    "params": parameters,
+                },
+            }))
 
-        if len(difference) > 0:
-            request = RequestBuilder(self.client.requests[request.id()].update(
-                payload={ASSET: {PARAMS: difference}},
-            ))
-
-        return request
+            return on_success(
+                request.with_asset(updated.asset()),
+            )
+        except ClientError as e:
+            return on_error(e)
 
     def _update_asset_request_status(
             self,
@@ -184,7 +177,8 @@ class WithAssetHelper:
         :param status: The template id to be used to inquire.
         :param on_error: Callback to execute when we got an error.
         :param on_success: Callback to execute when action finished successfully.
-        :return: The inquired RequestBuilder.
+        :return: RequestBuilder
+
         """
         if on_success is None:
             def on_success(req: RequestBuilder):

@@ -135,7 +135,6 @@ def test_asset_helper_should_fail_an_asset_request(sync_client_factory, response
     asserts.request_reason(request.raw(), reason)
 
 
-
 def test_asset_helper_should_fail_failing_an_asset_request(sync_client_factory, response_factory):
     exception = ClientError(
         message=BAD_REQUEST_400,
@@ -188,7 +187,8 @@ def test_asset_helper_should_fail_inquiring_an_asset_request(sync_client_factory
         message=BAD_REQUEST_400,
         status_code=400,
         error_code="REQ_003",
-        errors=["For marking request to inquiring status at least one parameter should be marked as invalid."]
+        errors=[
+            "For marking request to inquiring status at least one parameter should be marked as invalid."]
     )
 
     client = sync_client_factory([
@@ -203,35 +203,54 @@ def test_asset_helper_should_fail_inquiring_an_asset_request(sync_client_factory
         Helper(client).inquire_asset_request(request, 'TL-662-440-097')
 
 
-def test_asset_helper_should_update_a_request_asset_params(sync_client_factory, response_factory, load_json):
-    on_server = RequestBuilder(load_json(os.path.dirname(__file__) + ASSET_REQUEST_FILE))
-
+def test_asset_helper_should_update_a_request_asset_params(
+        sync_client_factory,
+        response_factory,
+        load_json,
+):
     after_update = RequestBuilder(load_json(os.path.dirname(__file__) + ASSET_REQUEST_FILE))
     asset = after_update.asset()
     asset.with_asset_param('CAT_SUBSCRIPTION_ID', 'AS-8790-0160-2196')
     after_update.with_asset(asset)
 
     client = sync_client_factory([
-        response_factory(value=on_server.raw(), status=200),
         response_factory(value=after_update.raw(), status=200)
     ])
 
     request = RequestBuilder(load_json(os.path.dirname(__file__) + ASSET_REQUEST_FILE))
-    asset = request.asset()
-    asset.with_asset_param('CAT_SUBSCRIPTION_ID', 'AS-8790-0160-2196')
-    request.with_asset(asset)
 
-    request = Helper(client).update_asset_parameters_request(request)
+    request = Helper(client).update_asset_request_parameters(request, [{
+        'id': 'CAT_SUBSCRIPTION_ID',
+        'value': 'AS-8790-0160-2196'
+    }])
 
     asserts.asset_param_value_equal(request.raw(), 'CAT_SUBSCRIPTION_ID', 'AS-8790-0160-2196')
 
 
-def test_asset_helper_should_not_update_request_asset_params(sync_client_factory, response_factory, load_json):
-    request = RequestBuilder(load_json(os.path.dirname(__file__) + ASSET_REQUEST_FILE))
+def test_asset_helper_should_raise_exception_on_updating_request_asset_params(
+        sync_client_factory,
+        response_factory,
+        load_json,
+):
+    exception = ClientError(
+        message=BAD_REQUEST_400,
+        status_code=400,
+        error_code="REQ_003",
+        errors=[
+            "Only pending, draft or inquiring Fulfillments "
+            "with enabled validation capability can be updated."
+        ]
+    )
 
     client = sync_client_factory([
-        response_factory(value=request.raw(), status=200),
+        response_factory(exception=exception, status=exception.status_code)
     ])
-    request = Helper(client).update_asset_parameters_request(request)
 
-    asserts.asset_param_value_equal(request.raw(), 'CAT_SUBSCRIPTION_ID', '')
+    request = RequestBuilder(load_json(os.path.dirname(__file__) + ASSET_REQUEST_FILE))
+
+    with pytest.raises(ClientError):
+        Helper(client).update_asset_request_parameters(request, [{
+            'id': 'CAT_SUBSCRIPTION_ID',
+            'value': 'AS-8790-0160-2196'
+        }])
+
