@@ -43,7 +43,7 @@ class WithAssetHelper:
             effective_date: Optional[str] = None,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> Any:
+    ) -> Union[Any, RequestBuilder]:
         """
         Approves the given request using the given template id.
 
@@ -75,7 +75,7 @@ class WithAssetHelper:
             reason: str,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> Any:
+    ) -> Union[Any, RequestBuilder]:
         """
         Fail the given request using the given reason.
 
@@ -102,7 +102,7 @@ class WithAssetHelper:
             template_id: str,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> Any:
+    ) -> Union[Any, RequestBuilder]:
         """
         Inquire the given RequestBuilder
 
@@ -130,7 +130,7 @@ class WithAssetHelper:
             parameters: List[Dict[str, Any]],
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> Any:
+    ) -> Union[Any, RequestBuilder]:
         """
         Update Asset parameters
 
@@ -167,7 +167,7 @@ class WithAssetHelper:
             payload: Dict[str, Any] = None,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> Any:
+    ) -> Union[Any, RequestBuilder]:
         """
         Update Asset Request Status
 
