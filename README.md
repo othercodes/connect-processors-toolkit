@@ -277,6 +277,57 @@ class PurchaseFlow(
         return ProcessingResponse.done()
 ```
 
+## Asset Helper
+### Inquire Request
+```python
+from connect.eaas.extension import ProcessingResponse
+from connect.processors_toolkit.api.mixins import WithAssetHelper
+from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.requests import RequestBuilder
+
+
+class PurchaseFlow(
+    ProcessingFlow,
+    WithAssetHelper,
+):
+    def process(self, request: RequestBuilder) -> ProcessingResponse:
+        self.inquire_asset_request(request, 'FAKE-TEMPLATE-ID')
+        return ProcessingResponse.done()
+```
+
+### Fail Request
+```python
+from connect.eaas.extension import ProcessingResponse
+from connect.processors_toolkit.api.mixins import WithAssetHelper
+from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.requests import RequestBuilder
+
+
+class PurchaseFlow(
+    ProcessingFlow,
+    WithAssetHelper,
+):
+    def process(self, request: RequestBuilder) -> ProcessingResponse:
+        self.fail_asset_request(request, 'There is a reason')
+        return ProcessingResponse.done()
+```
+
+### Approve Request
+```python
+from connect.eaas.extension import ProcessingResponse
+from connect.processors_toolkit.api.mixins import WithAssetHelper
+from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.requests import RequestBuilder
+
+
+class PurchaseFlow(
+    ProcessingFlow,
+    WithAssetHelper,
+):
+    def process(self, request: RequestBuilder) -> ProcessingResponse:
+        self.approve_asset_request(request, 'A-VALID-TEMPLATE')
+        return ProcessingResponse.done()
+```
 ## License
 
 `Connect Processors Toolkit` is released under
