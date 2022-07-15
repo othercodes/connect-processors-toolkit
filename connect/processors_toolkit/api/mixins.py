@@ -43,7 +43,7 @@ class WithAssetHelper:
             effective_date: Optional[str] = None,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> RequestBuilder:
+    ) -> Union[Any, RequestBuilder]:
         """
         Approves the given request using the given template id.
 
@@ -75,7 +75,7 @@ class WithAssetHelper:
             reason: str,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> RequestBuilder:
+    ) -> Union[Any, RequestBuilder]:
         """
         Fail the given request using the given reason.
 
@@ -86,7 +86,6 @@ class WithAssetHelper:
         :return: The failed RequestBuilder.
         """
         payload = {REASON: reason}
-
         request.with_reason(reason)
 
         return self._update_asset_request_status(
@@ -99,12 +98,11 @@ class WithAssetHelper:
 
     def inquire_asset_request(
             self,
-            request:
-            RequestBuilder,
+            request: RequestBuilder,
             template_id: str,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> RequestBuilder:
+    ) -> Union[Any, RequestBuilder]:
         """
         Inquire the given RequestBuilder
 
@@ -132,7 +130,7 @@ class WithAssetHelper:
             parameters: List[Dict[str, Any]],
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> Any:
+    ) -> Union[Any, RequestBuilder]:
         """
         Update Asset parameters
 
@@ -143,7 +141,7 @@ class WithAssetHelper:
         :return: The request
         """
         if on_success is None:
-            def on_success(request_: RequestBuilder):
+            def on_success(request_: RequestBuilder) -> RequestBuilder:
                 return request_
 
         if on_error is None:
@@ -169,7 +167,7 @@ class WithAssetHelper:
             payload: Dict[str, Any] = None,
             on_error: Optional[Callable[[ClientError], Any]] = None,
             on_success: Optional[Callable[[RequestBuilder], Any]] = None,
-    ) -> Any:
+    ) -> Union[Any, RequestBuilder]:
         """
         Update Asset Request Status
 
@@ -193,10 +191,8 @@ class WithAssetHelper:
             INQUIRE: INQUIRING,
             FAIL: FAILED,
         }
-
         try:
             self.client.requests[request.id()](status).post(payload=payload)
-
             return on_success(request.with_status(statuses.get(status)))
         except ClientError as e:
             return on_error(e)
