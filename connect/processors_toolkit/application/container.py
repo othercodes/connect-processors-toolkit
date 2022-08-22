@@ -28,7 +28,7 @@ class Dependencies:
 
     to_instance:
         Define a dependency binding the dependency key to a certain instance.
-            > dependencies.to_class('service_api_key', 'XXXXXXXXXXX')
+            > dependencies.to_class('service_api_key', 'some_api_key')
 
     provide:
         Define a dependency binding between a key and a provider function.
@@ -38,7 +38,7 @@ class Dependencies:
 
     bind:
         Raw dependency binding.
-            dependencies.bind('service_api_key', BindType.TO_INSTANCE, 'XXXXXXXXXXX')
+            dependencies.bind('service_api_key', BindType.TO_INSTANCE, 'something')
 
     """
 
@@ -71,8 +71,8 @@ class Container:
 
     def __init__(self, dependencies: Dependencies):
         class __DISpec(pinject.BindingSpec):
-            def __init__(self, dependencies: Dependencies):
-                self.__dependencies = dependencies
+            def __init__(self, _dependencies: Dependencies):
+                self.__dependencies = _dependencies
 
             def configure(self, bind):
                 for name, dependency in self.__dependencies.binds.items():

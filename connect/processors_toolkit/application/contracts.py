@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Union
 
 from connect.eaas.extension import (
     CustomEventResponse,
@@ -19,22 +20,22 @@ from connect.processors_toolkit.requests import RequestBuilder
 
 class ProcessingFlow(ABC):  # pragma: no cover
     @abstractmethod
-    def process(self, request: RequestBuilder) -> ProcessingResponse:
+    def process(self, request: Union[RequestBuilder, dict]) -> ProcessingResponse:
         """
         Process the incoming request.
 
-        :param request: The incoming request dictionary.
+        :param request: The incoming request dictionary or RequestBuilder.
         :return: ProcessingResponse
         """
 
 
 class ValidationFlow(ABC):  # pragma: no cover
     @abstractmethod
-    def validate(self, request: RequestBuilder) -> ValidationResponse:
+    def validate(self, request: Union[RequestBuilder, dict]) -> ValidationResponse:
         """
         Validates the incoming request.
 
-        :param request: The incoming request dictionary.
+        :param request: The incoming request dictionary or RequestBuilder.
         :return: ValidationResponse
         """
 
