@@ -5,9 +5,8 @@
 #
 from __future__ import annotations
 
-from dataclasses import dataclass
 from logging import LoggerAdapter
-from typing import Callable, Dict, List, Type, Union
+from typing import Callable, Dict, Type, Union
 
 from connect.eaas.extension import (
     CustomEventResponse,
@@ -17,6 +16,7 @@ from connect.eaas.extension import (
     ValidationResponse,
 )
 from connect.processors_toolkit.application.container import DependencyBuildingFailure
+from connect.processors_toolkit.application.router import Route, Router
 from connect.processors_toolkit.requests.exceptions import MissingParameterError
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
 from connect.processors_toolkit.application import Container
@@ -44,130 +44,6 @@ TaskResponse = Union[
     CustomEventResponse,
     ScheduledExecutionResponse,
 ]
-
-
-class _ProcessFlowNotFound(ProcessingFlow):
-    def process(self, request: RequestBuilder) -> ProcessingResponse:
-        """
-        Handles the request in the case no flow controller match.
-
-        :param request:
-        :return: ProcessingResponse
-        """
-        raise NotImplementedError()
-
-
-class _ValidationFlowNotFound(ValidationFlow):
-    def validate(self, request: RequestBuilder) -> ValidationResponse:
-        """
-        Handles the request in the case no flow controller match.
-
-        :param request:
-        :return: ValidationResponse
-        """
-        raise NotImplementedError()
-
-
-class _CustomEventFlowNotFound(CustomEventFlow):
-    def handle(self, request: dict) -> CustomEventResponse:
-        """
-        Handles the request in case no flow controller match.
-
-        :param request:
-        :return: CustomEventResponse
-        """
-        return CustomEventResponse.done(http_status=404)
-
-
-class _ActionFlowNotFound(ProductActionFlow):
-    def handle(self, request: dict) -> ProductActionResponse:
-        """
-        Handles the request in case no flow controller match.
-
-        :param request:
-        :return: ProductActionResponse
-        """
-        return ProductActionResponse.done(http_status=404)
-
-
-class _ScheduledFlowNotFound(ScheduledFlow):
-    def handle(self, request: dict) -> ScheduledExecutionResponse:
-        """
-        Handles the request in the case no flow controller match.
-
-        :param request:
-        :return: ScheduledExecutionResponse
-        """
-        raise NotImplementedError()
-
-
-@dataclass
-class Route:
-    scope: str
-    process: str
-    name: str
-
-    SCOPE_ASSET = 'asset'
-    SCOPE_TIER_CONFIG = 'tier-config'
-    SCOPE_PRODUCT = 'product'
-
-    PROCESS_PROCESS = 'process'
-    PROCESS_VALIDATE = 'validate'
-    PROCESS_CUSTOM_EVENT = 'custom-event'
-    PROCESS_ACTION = 'action'
-    PROCESS_SCHEDULE = 'schedule'
-
-    def __post_init__(self):
-        if self.scope not in self.scopes():
-            raise ValueError(f'Invalid route scope value <{self.scope}>.')
-
-        if self.process not in self.processes():
-            raise ValueError(f'Invalid route process value <{self.process}>.')
-
-        if ' ' in self.name:
-            raise ValueError('Invalid route name, must not contains spaces.')
-
-    @staticmethod
-    def for_process(scope: str, action: str) -> Route:
-        return Route(scope, Route.PROCESS_PROCESS, action)
-
-    @staticmethod
-    def for_validate(scope: str, action: str) -> Route:
-        return Route(scope, Route.PROCESS_VALIDATE, action)
-
-    @staticmethod
-    def for_custom_event(scope: str, action: str) -> Route:
-        return Route(scope, Route.PROCESS_CUSTOM_EVENT, action)
-
-    @staticmethod
-    def for_action(scope: str, action: str) -> Route:
-        return Route(scope, Route.PROCESS_ACTION, action)
-
-    @staticmethod
-    def for_schedule(scope: str, action: str) -> Route:
-        return Route(scope, Route.PROCESS_SCHEDULE, action)
-
-    def scopes(self) -> List[str]:
-        return [
-            self.SCOPE_ASSET,
-            self.SCOPE_TIER_CONFIG,
-            self.SCOPE_PRODUCT,
-        ]
-
-    def processes(self) -> List[str]:
-        return [
-            self.PROCESS_PROCESS,
-            self.PROCESS_VALIDATE,
-            self.PROCESS_CUSTOM_EVENT,
-            self.PROCESS_ACTION,
-            self.PROCESS_SCHEDULE,
-        ]
-
-    def not_found(self) -> str:
-        return f"{self.scope}.{self.process}"
-
-    def main(self) -> str:
-        return f"{self.scope}.{self.process}.{self.name}"
 
 
 class WithDispatcher:
@@ -220,24 +96,17 @@ class WithDispatcher:
 
         Default values:
         {
-            'asset.process': _ProcessFlowNotFound,
-            'tier-config.process': _ProcessFlowNotFound,
-            'asset.validate': ValidatePurchaseFlow,
-            'product.custom-event': _CustomEventFlowNotFound,
-            'product.action': _ActionFlowNotFound,
-            'product.schedule': _ScheduleFlowNotFound,
+            'asset.process': ProcessNotFound,
+            'tier-config.process': ProcessNotFound,
+            'asset.validate': ValidationNotFound,
+            'product.custom-event': CustomEventNotFound,
+            'product.action': ActionNotFound,
+            'product.schedule': ScheduledNotFound,
         }
 
         :return: The route dictionary.
         """
         return {}
-
-    def __route(self, route: Route, not_found_controller: Type) -> Type:
-        controller = self.routes().get(route.main())
-        if controller is None:
-            controller = self.not_found().get(route.not_found(), not_found_controller)
-
-        return controller
 
     def __make(self, controller: Type, request: dict) -> Controller:
         instance = self.container.get(controller)
@@ -251,13 +120,12 @@ class WithDispatcher:
             request: dict,
             execution_type: str,
             route: Route,
-            not_found_controller: Type,
             on_bootstrap_error: Callable[[Exception, dict], TaskResponse],
             execute: Callable[[Controller, dict], TaskResponse],
     ) -> TaskResponse:
         self.logger.debug(f"Processing {execution_type}: {request}")
 
-        controller = self.__route(route, not_found_controller)
+        controller = Router(self.routes(), self.not_found()).route(route)
 
         try:
             self.logger.debug(f"Loading {controller} {execution_type} controller.")
@@ -279,7 +147,6 @@ class WithDispatcher:
             request,
             'request',
             Route.for_process(request_model(request), request.get('type')),
-            _ProcessFlowNotFound,
             # If the controller cannot be instantiated due to missing parameters or
             # dependency building issues, we just need to reschedule the request.
             lambda _, __: ProcessingResponse.slow_process_reschedule(countdown=reschedule_time),
@@ -291,7 +158,6 @@ class WithDispatcher:
             request,
             'validation',
             Route.for_validate(request_model(request), request.get('type')),
-            _ValidationFlowNotFound,
             # If the dynamic validation cannot be executed successfully due to controller
             # instantiation issues, just return the actual request assuming the ordering
             # parameters are valid, the actual purchase, change, etc. process will inquire
@@ -304,8 +170,7 @@ class WithDispatcher:
         return self.__dispatch(
             request,
             'action',
-            Route.for_action('product', request.get('jwt_payload', {}).get('action_id')),
-            _ActionFlowNotFound,
+            Route.for_action(request.get('jwt_payload', {}).get('action_id')),
             # Return a 500 status code on controller instantiation.
             lambda _, __: ProductActionResponse.done(http_status=500),
             lambda ctrl, req: ctrl.handle(req),
@@ -315,8 +180,7 @@ class WithDispatcher:
         return self.__dispatch(
             request,
             'custom event',
-            Route.for_custom_event('product', request.get('body', {}).get('controller')),
-            _CustomEventFlowNotFound,
+            Route.for_custom_event(request.get('body', {}).get('controller')),
             # Return a 500 status code on controller instantiation.
             lambda _, __: CustomEventResponse.done(http_status=500),
             lambda ctrl, req: ctrl.handle(req),
@@ -326,8 +190,7 @@ class WithDispatcher:
         return self.__dispatch(
             request,
             'schedule',
-            Route.for_schedule('product', schedule_task),
-            _ScheduledFlowNotFound,
+            Route.for_schedule(schedule_task),
             lambda _, __: ScheduledExecutionResponse.done(),
             lambda ctrl, req: ctrl.handle(req),
         )
