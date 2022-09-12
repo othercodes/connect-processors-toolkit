@@ -4,11 +4,11 @@ from typing import Dict
 from connect.client import ConnectClient
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
-from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.application.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
-class Purchase(ProcessingFlow, WithBoundedLogger):
+class Purchase(ProcessingTransaction, WithBoundedLogger):
     def __init__(
             self,
             client: ConnectClient,

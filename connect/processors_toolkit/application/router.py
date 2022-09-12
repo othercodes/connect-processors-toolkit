@@ -1,3 +1,8 @@
+#
+# This file is part of the Ingram Micro CloudBlue Connect Processors Toolkit.
+#
+# Copyright (c) 2022 Ingram Micro. All Rights Reserved.
+#
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,16 +16,16 @@ from connect.eaas.core.responses import (
     ValidationResponse,
 )
 from connect.processors_toolkit.application.contracts import (
-    CustomEventFlow,
-    ProcessingFlow,
-    ProductActionFlow,
-    ScheduledFlow,
-    ValidationFlow,
+    CustomEventTransaction,
+    ProcessingTransaction,
+    ProductActionTransaction,
+    ScheduledTransaction,
+    ValidationTransaction,
 )
 from connect.processors_toolkit.requests import RequestBuilder
 
 
-class ProcessNotFound(ProcessingFlow):
+class ProcessNotFound(ProcessingTransaction):
     def process(self, request: Union[RequestBuilder, dict]) -> ProcessingResponse:
         """
         Handles the request in the case no flow controller match.
@@ -31,7 +36,7 @@ class ProcessNotFound(ProcessingFlow):
         raise NotImplementedError()
 
 
-class ValidationNotFound(ValidationFlow):
+class ValidationNotFound(ValidationTransaction):
     def validate(self, request: Union[RequestBuilder, dict]) -> ValidationResponse:
         """
         Handles the request in the case no flow controller match.
@@ -42,7 +47,7 @@ class ValidationNotFound(ValidationFlow):
         raise NotImplementedError()
 
 
-class CustomEventNotFound(CustomEventFlow):
+class CustomEventNotFound(CustomEventTransaction):
     def handle(self, request: dict) -> CustomEventResponse:
         """
         Handles the request in case no flow controller match.
@@ -53,7 +58,7 @@ class CustomEventNotFound(CustomEventFlow):
         return CustomEventResponse.done(http_status=404)
 
 
-class ActionNotFound(ProductActionFlow):
+class ActionNotFound(ProductActionTransaction):
     def handle(self, request: dict) -> ProductActionResponse:
         """
         Handles the request in case no flow controller match.
@@ -64,7 +69,7 @@ class ActionNotFound(ProductActionFlow):
         return ProductActionResponse.done(http_status=404)
 
 
-class ScheduledNotFound(ScheduledFlow):
+class ScheduledNotFound(ScheduledTransaction):
     def handle(self, request: dict) -> ScheduledExecutionResponse:
         """
         Handles the request in the case no flow controller match.
