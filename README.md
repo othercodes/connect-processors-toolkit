@@ -193,10 +193,10 @@ from typing import Dict, Type
 from connect.eaas.extension import CustomEventResponse
 from connect.processors_toolkit.application import Application
 from connect.processors_toolkit.application.dispatcher import WithDispatcher
-from connect.processors_toolkit.application.contracts import CustomEventFlow
+from connect.processors_toolkit.application.contracts import CustomEventTransaction
 
 
-class HelloWorld(CustomEventFlow):
+class HelloWorld(CustomEventTransaction):
     def handle(self, request: dict) -> CustomEventResponse:
         return CustomEventResponse.done(
             http_status=200,
@@ -204,7 +204,7 @@ class HelloWorld(CustomEventFlow):
         )
 
 
-class GoodByeWorld(CustomEventFlow):
+class GoodByeWorld(CustomEventTransaction):
     def handle(self, request: dict) -> CustomEventResponse:
         return CustomEventResponse.done(
             http_status=200,
@@ -248,25 +248,25 @@ creating the instance of the controller.
 ## Class Contracts
 
 There a set of contracts available to work with, these contracts only define the methods that should be implemented for
-each type of controller or flow.
+each type of controller or transaction.
 
-- ProcessingFlow
-- ValidationFlow
-- ProductActionFlow
-- CustomEventFlow
-- ScheduledFlow
+- ProcessingTransaction
+- ValidationTransaction
+- ProductActionTransaction
+- CustomEventTransaction
+- ScheduledTransaction
 
 ```python
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.api.mixins import WithAssetHelper, WithProductHelper
-from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.application.contracts import ProcessingTransaction
 from connect.processors_toolkit.configuration.mixins import WithConfigurationHelper
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
 from connect.processors_toolkit.requests import RequestBuilder
 
 
 class PurchaseFlow(
-    ProcessingFlow,
+    ProcessingTransaction,
     WithBoundedLogger,
     WithAssetHelper,
     WithProductHelper,
@@ -278,16 +278,18 @@ class PurchaseFlow(
 ```
 
 ## Asset Helper
+
 ### Inquire Request
+
 ```python
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.api.mixins import WithAssetHelper
-from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.application.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
 class PurchaseFlow(
-    ProcessingFlow,
+    ProcessingTransaction,
     WithAssetHelper,
 ):
     def process(self, request: RequestBuilder) -> ProcessingResponse:
@@ -296,15 +298,16 @@ class PurchaseFlow(
 ```
 
 ### Fail Request
+
 ```python
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.api.mixins import WithAssetHelper
-from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.application.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
 class PurchaseFlow(
-    ProcessingFlow,
+    ProcessingTransaction,
     WithAssetHelper,
 ):
     def process(self, request: RequestBuilder) -> ProcessingResponse:
@@ -313,21 +316,23 @@ class PurchaseFlow(
 ```
 
 ### Approve Request
+
 ```python
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.api.mixins import WithAssetHelper
-from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.application.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
 class PurchaseFlow(
-    ProcessingFlow,
+    ProcessingTransaction,
     WithAssetHelper,
 ):
     def process(self, request: RequestBuilder) -> ProcessingResponse:
         self.approve_asset_request(request, 'A-VALID-TEMPLATE')
         return ProcessingResponse.done()
 ```
+
 ## License
 
 `Connect Processors Toolkit` is released under

@@ -2,12 +2,12 @@ from typing import Union
 
 from connect.eaas.core.responses import ProcessingResponse
 
-from connect.processors_toolkit.application.contracts import ProcessingFlow
+from connect.processors_toolkit.application.contracts import ProcessingTransaction
 from connect.processors_toolkit.application.router import Router, ProcessNotFound, Route
 from connect.processors_toolkit.requests import RequestBuilder
 
 
-class SamplePurchaseProcess(ProcessingFlow):
+class SamplePurchaseProcess(ProcessingTransaction):
     def process(self, request: Union[RequestBuilder, dict]) -> ProcessingResponse:
         """
         Handles the request in the case no flow controller match.

@@ -1,8 +1,8 @@
 from connect.eaas.extension import ProductActionResponse
-from connect.processors_toolkit.application.contracts import ProductActionFlow
+from connect.processors_toolkit.application.contracts import ProductActionTransaction
 
 
-class SSO(ProductActionFlow):
+class SSO(ProductActionTransaction):
     def __init__(self, logger):
         self.logger = logger
 

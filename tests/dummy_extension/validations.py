@@ -3,11 +3,11 @@ from typing import Dict
 
 from connect.client import ConnectClient
 from connect.eaas.extension import ValidationResponse
-from connect.processors_toolkit.application.contracts import ValidationFlow
+from connect.processors_toolkit.application.contracts import ValidationTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
-class Purchase(ValidationFlow):
+class Purchase(ValidationTransaction):
     def __init__(
             self,
             client: ConnectClient,

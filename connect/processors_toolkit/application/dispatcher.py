@@ -21,20 +21,20 @@ from connect.processors_toolkit.requests.exceptions import MissingParameterError
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
 from connect.processors_toolkit.application import Container
 from connect.processors_toolkit.application.contracts import (
-    CustomEventFlow,
-    ProcessingFlow,
-    ProductActionFlow,
-    ScheduledFlow,
-    ValidationFlow,
+    CustomEventTransaction,
+    ProcessingTransaction,
+    ProductActionTransaction,
+    ScheduledTransaction,
+    ValidationTransaction,
 )
 from connect.processors_toolkit.requests import request_model, RequestBuilder
 
 Controller = Union[
-    ProcessingFlow,
-    ValidationFlow,
-    CustomEventFlow,
-    ProductActionFlow,
-    ScheduledFlow,
+    ProcessingTransaction,
+    ValidationTransaction,
+    CustomEventTransaction,
+    ProductActionTransaction,
+    ScheduledTransaction,
 ]
 
 TaskResponse = Union[

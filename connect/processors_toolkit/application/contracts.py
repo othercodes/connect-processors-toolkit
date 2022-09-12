@@ -18,7 +18,7 @@ from connect.eaas.extension import (
 from connect.processors_toolkit.requests import RequestBuilder
 
 
-class ProcessingFlow(ABC):  # pragma: no cover
+class ProcessingTransaction(ABC):  # pragma: no cover
     @abstractmethod
     def process(self, request: Union[RequestBuilder, dict]) -> ProcessingResponse:
         """
@@ -29,7 +29,7 @@ class ProcessingFlow(ABC):  # pragma: no cover
         """
 
 
-class ValidationFlow(ABC):  # pragma: no cover
+class ValidationTransaction(ABC):  # pragma: no cover
     @abstractmethod
     def validate(self, request: Union[RequestBuilder, dict]) -> ValidationResponse:
         """
@@ -40,7 +40,7 @@ class ValidationFlow(ABC):  # pragma: no cover
         """
 
 
-class ProductActionFlow(ABC):  # pragma: no cover
+class ProductActionTransaction(ABC):  # pragma: no cover
     @abstractmethod
     def handle(self, request: dict) -> ProductActionResponse:
         """
@@ -51,7 +51,7 @@ class ProductActionFlow(ABC):  # pragma: no cover
         """
 
 
-class CustomEventFlow(ABC):  # pragma: no cover
+class CustomEventTransaction(ABC):  # pragma: no cover
     @abstractmethod
     def handle(self, request: dict) -> CustomEventResponse:
         """
@@ -62,7 +62,7 @@ class CustomEventFlow(ABC):  # pragma: no cover
         """
 
 
-class ScheduledFlow(ABC):  # pragma: no cover
+class ScheduledTransaction(ABC):  # pragma: no cover
     @abstractmethod
     def handle(self, request: dict) -> ScheduledExecutionResponse:
         """

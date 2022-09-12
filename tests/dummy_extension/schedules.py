@@ -1,8 +1,8 @@
 from connect.eaas.extension import ScheduledExecutionResponse
-from connect.processors_toolkit.application.contracts import ScheduledFlow
+from connect.processors_toolkit.application.contracts import ScheduledTransaction
 
 
-class RefreshToken(ScheduledFlow):
+class RefreshToken(ScheduledTransaction):
     def __init__(self, logger):
         self.logger = logger
 
