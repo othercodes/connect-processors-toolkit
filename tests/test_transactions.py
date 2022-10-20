@@ -1,7 +1,14 @@
+from typing import Optional
+
 import pytest
 from connect.eaas.core.responses import ProcessingResponse
 from connect.processors_toolkit.requests import RequestBuilder
-from connect.processors_toolkit.transactions import TransactionSelector, TransactionStatement
+from connect.processors_toolkit.transactions import (
+    FnTransaction,
+    prepare,
+    TransactionSelector,
+    TransactionStatement,
+)
 from connect.processors_toolkit.transactions.exceptions import (
     TransactionStatementNotSelected,
     InvalidTransactionStatement,
@@ -48,6 +55,20 @@ def approve_request(_: dict) -> ProcessingResponse:
 
 def approve_request_compensate(_: dict) -> ProcessingResponse:
     return ProcessingResponse.done()
+
+
+def mdl_one(request: dict, nxt: Optional[FnTransaction] = None) -> ProcessingResponse:
+    print(f'001 Before')
+    response = nxt(request)
+    print(f'001 After')
+    return response
+
+
+def mdl_two(request: dict, nxt: Optional[FnTransaction] = None) -> ProcessingResponse:
+    print(f'002 Before')
+    response = nxt(request)
+    print(f'002 After')
+    return response
 
 
 def test_transaction_selector_should_select_the_correct_statement():
@@ -97,3 +118,19 @@ def test_transaction_selector_should_raise_exception_on_transaction_not_selected
 
     with pytest.raises(TransactionStatementNotSelected):
         ts.select(request)
+
+
+def tests_transaction_preparer_should_build_a_transaction_callstack_successfully():
+    transaction = prepare(CreateCustomer(), [
+        mdl_one,
+        mdl_two,
+    ])
+
+    response = transaction(
+        RequestBuilder() \
+            .with_status('pending') \
+            .with_param('PARAM_CUSTOMER_ID', 'eda1b4f1-a3a8-4a87-bd3f-ad71f6c2e93e') \
+            .raw(),
+    )
+
+    assert response.status == 'success'
