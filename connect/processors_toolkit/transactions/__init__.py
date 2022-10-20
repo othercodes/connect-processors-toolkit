@@ -73,3 +73,45 @@ class TransactionSelector:
 
     def select(self, request: dict) -> TransactionStatement:
         return select(self.__transactions, request)
+
+
+Middleware = Callable[[dict, Optional[FnTransaction]], ProcessingResponse]
+
+
+class TransactionExecutorMiddleware:
+    def __init__(self, transaction: TransactionStatement):
+        self.transaction = transaction
+
+    def __call__(self, request: dict, _: Optional[FnTransaction] = None) -> ProcessingResponse:
+        try:
+            return self.transaction.execute(request)
+        except Exception as e:
+            return self.transaction.compensate(request, e)
+
+
+def prepare(transaction: TransactionStatement, middlewares: List[Middleware]) -> FnTransaction:
+    """
+    Prepare the given transaction by creating the middleware callstack.
+
+    :param transaction: TransactionStatement the transaction to prepare.
+    :param middlewares: List[Middleware] The list of middleware to wrap the transaction.
+    :return: FnTransaction
+    """
+
+    def __make_middleware_callstack(current_: Middleware, next_: Optional[Middleware] = None) -> FnTransaction:
+        def __middleware_callstack(request: dict):
+            return current_(request, next_)
+
+        return __middleware_callstack
+
+    # push the last middleware (TransactionExecutorMiddleware) into the stack.
+    middlewares.append(TransactionExecutorMiddleware(transaction))
+
+    callstack = None
+    for middleware in reversed(middlewares):
+        current = middleware
+        if callstack is not None:
+            current = __make_middleware_callstack(current, callstack)
+        callstack = current
+
+    return callstack
