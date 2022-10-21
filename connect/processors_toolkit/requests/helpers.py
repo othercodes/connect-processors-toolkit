@@ -77,7 +77,7 @@ def make_param(
 ) -> dict:
     return {
         'id': param_id,
-        'structured_value' if isinstance(value, dict) else 'value': value,
+        'structured_value' if type(value) in [object, dict, list] else 'value': value,
         'value_error': value_error,
         'title': f'Parameter {param_id} title.' if title is None else title,
         'description': f'Parameter {param_id} description.' if description is None else description,

@@ -232,7 +232,7 @@ class AssetBuilder:
     def with_asset_param(
             self,
             param_id: str,
-            value: Optional[Union[str, dict]] = None,
+            value: Optional[Union[str, dict, list]] = None,
             value_error: Optional[str] = None,
             value_type: Optional[str] = None,
             title: Optional[str] = None,
@@ -323,7 +323,7 @@ class AssetBuilder:
             self,
             item_id: str,
             param_id: str,
-            value: Optional[Union[str, dict]] = None,
+            value: Optional[Union[str, dict, list]] = None,
             value_type: Optional[str] = None,
             title: Optional[str] = None,
             description: Optional[str] = None,
@@ -372,7 +372,7 @@ class AssetBuilder:
     def with_asset_configuration_param(
             self,
             param_id: str,
-            value: Optional[Union[str, dict]] = None,
+            value: Optional[Union[str, dict, list]] = None,
             value_error: Optional[str] = None,
             value_type: Optional[str] = None,
             title: Optional[str] = None,
