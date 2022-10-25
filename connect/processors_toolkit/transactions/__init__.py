@@ -6,23 +6,23 @@
 from typing import Callable, List, Optional, Tuple, Union
 
 from connect.eaas.core.responses import ProcessingResponse
-from connect.processors_toolkit.transactions.contracts import TransactionStatement
+from connect.processors_toolkit.transactions.contracts import ProcessTransactionStatement
 from connect.processors_toolkit.transactions.exceptions import TransactionStatementException
 
-FnPredicate = Callable[[dict], bool]
-FnTransaction = Callable[[dict], ProcessingResponse]
-FnCompensation = Optional[Callable[[dict, Exception], ProcessingResponse]]
-FnTransactionStatement = Tuple[str, FnPredicate, FnTransaction, FnCompensation]
-AnyTransactionStatement = Union[TransactionStatement, FnTransactionStatement]
+FnProcessPredicate = Callable[[dict], bool]
+FnProcessTransaction = Callable[[dict], ProcessingResponse]
+FnProcessCompensation = Optional[Callable[[dict, Exception], ProcessingResponse]]
+FnProcessTransactionStatement = Tuple[str, FnProcessPredicate, FnProcessTransaction, FnProcessCompensation]
+AnyProcessTransactionStatement = Union[ProcessTransactionStatement, FnProcessTransactionStatement]
 
 
-class TupleTransactionStatement(TransactionStatement):
+class TupleProcessTransactionStatement(ProcessTransactionStatement):
     def __init__(
             self,
             name: str,
-            predicate: FnPredicate,
-            transaction: FnTransaction,
-            compensation: FnCompensation = None,
+            predicate: FnProcessPredicate,
+            transaction: FnProcessTransaction,
+            compensation: FnProcessCompensation = None,
     ):
         self._name = name
         self._predicate = predicate
@@ -44,20 +44,20 @@ class TupleTransactionStatement(TransactionStatement):
         return self._compensation(request, e)
 
 
-def select(transactions: List[AnyTransactionStatement], request: dict) -> TransactionStatement:
+def select(transactions: List[AnyProcessTransactionStatement], request: dict) -> ProcessTransactionStatement:
     """
     Select the correct transaction for the given request (context).
 
-    :param transactions: List[AnyTransactionStatement] List of transactions.
+    :param transactions: List[AnyProcessTransactionStatement] List of transactions.
     :param request: dict The Connect Request dictionary.
-    :return: TransactionStatement
+    :return: ProcessTransactionStatement
     """
 
-    def __prepare_transaction_statement(statement_: AnyTransactionStatement) -> TransactionStatement:
-        if isinstance(statement_, TransactionStatement):
+    def __prepare_transaction_statement(statement_: AnyProcessTransactionStatement) -> ProcessTransactionStatement:
+        if isinstance(statement_, ProcessTransactionStatement):
             return statement_
         elif isinstance(statement_, Tuple):
-            return TupleTransactionStatement(*statement_)
+            return TupleProcessTransactionStatement(*statement_)
         else:
             raise TransactionStatementException.invalid('Invalid transaction statement.')
 
@@ -68,37 +68,37 @@ def select(transactions: List[AnyTransactionStatement], request: dict) -> Transa
 
 
 class TransactionSelector:
-    def __init__(self, transactions: List[AnyTransactionStatement]):
+    def __init__(self, transactions: List[AnyProcessTransactionStatement]):
         self.__transactions = transactions
 
-    def select(self, request: dict) -> TransactionStatement:
+    def select(self, request: dict) -> ProcessTransactionStatement:
         return select(self.__transactions, request)
 
 
-Middleware = Callable[[dict, Optional[FnTransaction]], ProcessingResponse]
+Middleware = Callable[[dict, Optional[FnProcessTransaction]], ProcessingResponse]
 
 
 class TransactionExecutorMiddleware:
-    def __init__(self, transaction: TransactionStatement):
+    def __init__(self, transaction: ProcessTransactionStatement):
         self.transaction = transaction
 
-    def __call__(self, request: dict, _: Optional[FnTransaction] = None) -> ProcessingResponse:
+    def __call__(self, request: dict, _: Optional[FnProcessTransaction] = None) -> ProcessingResponse:
         try:
             return self.transaction.execute(request)
         except Exception as e:
             return self.transaction.compensate(request, e)
 
 
-def prepare(transaction: TransactionStatement, middlewares: List[Middleware]) -> FnTransaction:
+def prepare(transaction: ProcessTransactionStatement, middlewares: List[Middleware]) -> FnProcessTransaction:
     """
     Prepare the given transaction by creating the middleware callstack.
 
-    :param transaction: TransactionStatement the transaction to prepare.
+    :param transaction: ProcessTransactionStatement the transaction to prepare.
     :param middlewares: List[Middleware] The list of middleware to wrap the transaction.
-    :return: FnTransaction
+    :return: FnProcessTransaction
     """
 
-    def __make_middleware_callstack(current_: Middleware, next_: Optional[Middleware] = None) -> FnTransaction:
+    def __make_middleware_callstack(current_: Middleware, next_: Optional[Middleware] = None) -> FnProcessTransaction:
         def __middleware_callstack(request: dict):
             return current_(request, next_)
 

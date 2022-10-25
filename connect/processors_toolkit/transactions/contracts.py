@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from connect.eaas.core.responses import ProcessingResponse
 
 
-class TransactionStatement(ABC):
+class ProcessTransactionStatement(ABC):
     @abstractmethod
     def name(self) -> str:
         """
