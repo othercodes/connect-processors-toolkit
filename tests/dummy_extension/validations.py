@@ -3,7 +3,7 @@ from typing import Dict
 
 from connect.client import ConnectClient
 from connect.eaas.extension import ValidationResponse
-from connect.processors_toolkit.application.contracts import ValidationTransaction
+from connect.processors_toolkit.transactions.contracts import ValidationTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 

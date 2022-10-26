@@ -2,7 +2,7 @@ from typing import Union
 
 from connect.eaas.core.responses import ProcessingResponse
 
-from connect.processors_toolkit.application.contracts import ProcessingTransaction
+from connect.processors_toolkit.transactions.contracts import ProcessingTransaction
 from connect.processors_toolkit.application.router import Router, ProcessNotFound, Route
 from connect.processors_toolkit.requests import RequestBuilder
 

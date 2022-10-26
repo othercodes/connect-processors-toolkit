@@ -5,6 +5,7 @@
 #
 from __future__ import annotations
 
+from abc import ABC
 from dataclasses import dataclass
 from typing import Dict, List, Type, Union
 
@@ -15,7 +16,7 @@ from connect.eaas.core.responses import (
     ScheduledExecutionResponse,
     ValidationResponse,
 )
-from connect.processors_toolkit.application.contracts import (
+from connect.processors_toolkit.transactions.contracts import (
     CustomEventTransaction,
     ProcessingTransaction,
     ProductActionTransaction,
@@ -25,7 +26,7 @@ from connect.processors_toolkit.application.contracts import (
 from connect.processors_toolkit.requests import RequestBuilder
 
 
-class ProcessNotFound(ProcessingTransaction):
+class ProcessNotFound(ProcessingTransaction, ABC):
     def process(self, request: Union[RequestBuilder, dict]) -> ProcessingResponse:
         """
         Handles the request in the case no flow controller match.

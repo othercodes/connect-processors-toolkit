@@ -1,7 +1,7 @@
 import pytest
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.application import Application, Dependencies, DependencyBuildingFailure
-from connect.processors_toolkit.application.contracts import ProcessingTransaction
+from connect.processors_toolkit.transactions.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
@@ -13,7 +13,7 @@ def test_application_should_make_required_flow_controller(sync_client_factory, l
         def __init__(self, logger):
             self.logger = logger
 
-        def process(self, request: RequestBuilder) -> ProcessingResponse:
+        def execute(self, request: RequestBuilder) -> ProcessingResponse:
             return ProcessingResponse.done()
 
     client = sync_client_factory([])
@@ -44,7 +44,7 @@ def test_application_should_make_required_flow_controller_with_custom_dependenci
         def __init__(self, api_client):
             self.api_client = api_client
 
-        def process(self, request: RequestBuilder) -> ProcessingResponse:
+        def execute(self, request: RequestBuilder) -> ProcessingResponse:
             return ProcessingResponse.done()
 
     client = sync_client_factory([])
@@ -67,7 +67,7 @@ def test_application_should_raise_exception_on_building_dependencies(sync_client
         def __init__(self, non_registered_dependency):
             self.non_registered_dependency = non_registered_dependency
 
-        def process(self, request: RequestBuilder) -> ProcessingResponse:
+        def execute(self, request: RequestBuilder) -> ProcessingResponse:
             return ProcessingResponse.done()
 
     client = sync_client_factory([])

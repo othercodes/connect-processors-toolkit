@@ -1,5 +1,5 @@
 from connect.eaas.extension import ProductActionResponse
-from connect.processors_toolkit.application.contracts import ProductActionTransaction
+from connect.processors_toolkit.transactions.contracts import ProductActionTransaction
 
 
 class SSO(ProductActionTransaction):
