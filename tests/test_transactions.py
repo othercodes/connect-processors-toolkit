@@ -3,11 +3,10 @@ from typing import Optional
 import pytest
 from connect.eaas.core.responses import ProcessingResponse
 from connect.processors_toolkit.requests import RequestBuilder
-from connect.processors_toolkit.transactions import (
-    FnProcessTransaction,
-    prepare,
-    TransactionSelector,
-    ProcessTransactionStatement,
+from connect.processors_toolkit.transactions import prepare, TransactionSelector
+from connect.processors_toolkit.transactions.contracts import (
+    FnProcessingTransaction,
+    ProcessingTransactionStatement,
 )
 from connect.processors_toolkit.transactions.exceptions import (
     TransactionStatementNotSelected,
@@ -15,7 +14,7 @@ from connect.processors_toolkit.transactions.exceptions import (
 )
 
 
-class CreateCustomer(ProcessTransactionStatement):
+class CreateCustomer(ProcessingTransactionStatement):
     def name(self) -> str:
         return 'Create Customer'
 
@@ -57,14 +56,14 @@ def approve_request_compensate(_: dict) -> ProcessingResponse:
     return ProcessingResponse.done()
 
 
-def mdl_one(request: dict, nxt: Optional[FnProcessTransaction] = None) -> ProcessingResponse:
+def mdl_one(request: dict, nxt: Optional[FnProcessingTransaction] = None) -> ProcessingResponse:
     print(f'001 Before')
     response = nxt(request)
     print(f'001 After')
     return response
 
 
-def mdl_two(request: dict, nxt: Optional[FnProcessTransaction] = None) -> ProcessingResponse:
+def mdl_two(request: dict, nxt: Optional[FnProcessingTransaction] = None) -> ProcessingResponse:
     print(f'002 Before')
     response = nxt(request)
     print(f'002 After')

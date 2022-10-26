@@ -1,5 +1,5 @@
 from connect.eaas.extension import ScheduledExecutionResponse
-from connect.processors_toolkit.application.contracts import ScheduledTransaction
+from connect.processors_toolkit.transactions.contracts import ScheduledTransaction
 
 
 class RefreshToken(ScheduledTransaction):

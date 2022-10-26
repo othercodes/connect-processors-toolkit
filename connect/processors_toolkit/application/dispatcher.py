@@ -20,7 +20,7 @@ from connect.processors_toolkit.application.router import Route, Router
 from connect.processors_toolkit.requests.exceptions import MissingParameterError
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
 from connect.processors_toolkit.application import Container
-from connect.processors_toolkit.application.contracts import (
+from connect.processors_toolkit.transactions.contracts import (
     CustomEventTransaction,
     ProcessingTransaction,
     ProductActionTransaction,
@@ -150,7 +150,7 @@ class WithDispatcher:
             # If the controller cannot be instantiated due to missing parameters or
             # dependency building issues, we just need to reschedule the request.
             lambda _, __: ProcessingResponse.slow_process_reschedule(countdown=reschedule_time),
-            lambda ctrl, req: ctrl.process(RequestBuilder(req)),
+            lambda ctrl, req: ctrl.execute(RequestBuilder(req)),
         )
 
     def dispatch_validation(self, request: dict) -> ValidationResponse:

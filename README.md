@@ -48,6 +48,7 @@ asset = request.asset()
 asset_id = asset.asset_id()
 subscription_id = asset.asset_param('PARAM_SUBSCRIPTION_ID', 'value')
 ```
+
 ## Configuration Mixins
 
 We can also use the WithConfigurationHelper to easily access to the configuration.
@@ -193,7 +194,7 @@ from typing import Dict, Type
 from connect.eaas.extension import CustomEventResponse
 from connect.processors_toolkit.application import Application
 from connect.processors_toolkit.application.dispatcher import WithDispatcher
-from connect.processors_toolkit.application.contracts import CustomEventTransaction
+from connect.processors_toolkit.transactions.contracts import CustomEventTransaction
 
 
 class HelloWorld(CustomEventTransaction):
@@ -258,8 +259,8 @@ each type of controller or transaction.
 
 ```python
 from connect.eaas.extension import ProcessingResponse
-from connect.processors_toolkit.api.mixins import WithAssetHelper, WithProductHelper
-from connect.processors_toolkit.application.contracts import ProcessingTransaction
+from connect.processors_toolkit.api.mixins import WithAssetHelper
+from connect.processors_toolkit.transactions.contracts import ProcessingTransaction
 from connect.processors_toolkit.configuration.mixins import WithConfigurationHelper
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
 from connect.processors_toolkit.requests import RequestBuilder
@@ -269,7 +270,6 @@ class PurchaseFlow(
     ProcessingTransaction,
     WithBoundedLogger,
     WithAssetHelper,
-    WithProductHelper,
     WithConfigurationHelper,
 ):
     def process(self, request: RequestBuilder) -> ProcessingResponse:
@@ -284,7 +284,7 @@ class PurchaseFlow(
 ```python
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.api.mixins import WithAssetHelper
-from connect.processors_toolkit.application.contracts import ProcessingTransaction
+from connect.processors_toolkit.transactions.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
@@ -302,7 +302,7 @@ class PurchaseFlow(
 ```python
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.api.mixins import WithAssetHelper
-from connect.processors_toolkit.application.contracts import ProcessingTransaction
+from connect.processors_toolkit.transactions.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 
@@ -320,7 +320,7 @@ class PurchaseFlow(
 ```python
 from connect.eaas.extension import ProcessingResponse
 from connect.processors_toolkit.api.mixins import WithAssetHelper
-from connect.processors_toolkit.application.contracts import ProcessingTransaction
+from connect.processors_toolkit.transactions.contracts import ProcessingTransaction
 from connect.processors_toolkit.requests import RequestBuilder
 
 

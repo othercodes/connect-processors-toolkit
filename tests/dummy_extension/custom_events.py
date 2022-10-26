@@ -1,5 +1,5 @@
 from connect.eaas.extension import CustomEventResponse
-from connect.processors_toolkit.application.contracts import CustomEventTransaction
+from connect.processors_toolkit.transactions.contracts import CustomEventTransaction
 from connect.processors_toolkit.configuration.mixins import WithConfigurationHelper
 
 
