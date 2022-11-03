@@ -87,12 +87,11 @@ class TransactionExecutorMiddleware:
             return self.transaction.compensate(request, e)
 
 
-def prepare(transaction: ProcessingTransactionStatement, middlewares: List[Middleware]) -> FnProcessingTransaction:
+def make_middleware_callstack(middlewares: List[Middleware]) -> FnProcessingTransaction:
     """
-    Prepare the given transaction by creating the middleware callstack.
+    Makes the middleware callstack.
 
-    :param transaction: ProcessTransactionStatement the transaction to prepare.
-    :param middlewares: List[Middleware] The list of middleware to wrap the transaction.
+    :param middlewares: List[Middleware] The list of middlewares to prepare.
     :return: FnProcessingTransaction
     """
 
@@ -101,9 +100,6 @@ def prepare(transaction: ProcessingTransactionStatement, middlewares: List[Middl
             return current_(request, next_)
 
         return __middleware_callstack
-
-    # push the last middleware (TransactionExecutorMiddleware) into the stack.
-    middlewares.append(TransactionExecutorMiddleware(transaction))
 
     callstack = None
     for middleware in reversed(middlewares):

@@ -9,7 +9,7 @@ from connect.processors_toolkit.offline import (
     DefaultOnMatchTransaction,
 )
 from connect.processors_toolkit.requests import AssetBuilder, RequestBuilder
-from connect.processors_toolkit.transactions import prepare
+from connect.processors_toolkit.transactions import make_middleware_callstack, TransactionExecutorMiddleware
 from connect.processors_toolkit.transactions.contracts import ProcessingTransactionStatement
 
 
@@ -85,7 +85,8 @@ def test_offline_criteria_should_match_request_and_execute_arbitrary_code_as_mid
         return ProcessingResponse.done()
 
     offline = OfflineCriteria([match_request_is_pending], on_match_assertion)
-    transaction = prepare(CreateCustomer(), [offline])
+    executor = TransactionExecutorMiddleware(CreateCustomer())
+    transaction = make_middleware_callstack([offline, executor])
 
     transaction(request)
 
@@ -101,7 +102,8 @@ def test_offline_criteria_should_match_request_and_not_execute_arbitrary_code_as
         return request.get('status', 'pending') == 'pending'
 
     offline = OfflineCriteria([match_request_is_pending])
-    transaction = prepare(CreateCustomer(), [offline])
+    executor = TransactionExecutorMiddleware(CreateCustomer())
+    transaction = make_middleware_callstack([offline, executor])
 
     assert transaction(request).status == 'skip'
 
@@ -117,7 +119,8 @@ def test_offline_criteria_should_not_match_request_as_middleware():
         return request.get('status', 'pending') == 'pending'
 
     offline = OfflineCriteria([match_request_is_pending])
-    transaction = prepare(CreateCustomer(), [offline])
+    executor = TransactionExecutorMiddleware(CreateCustomer())
+    transaction = make_middleware_callstack([offline, executor])
 
     transaction(request)
 
