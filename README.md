@@ -184,7 +184,7 @@ class MyAwesomeExtension(Application):
 
 ## Controller Dispatcher (Route, Build and Execute)
 
-Along with the DI Container you can use the `WithDispatcher` mixin to add the "route, build and execute the controller"
+Along with the DI Container you can use the `WithRouter` mixin to add the "route, build and execute the controller"
 functionality. This feature is specially useful when implement a big amount of custom events of product actions is
 required. The dispatcher will build the instance of the correct class and execute it
 
@@ -193,7 +193,7 @@ from typing import Dict, Type
 
 from connect.eaas.extension import CustomEventResponse
 from connect.processors_toolkit.application import Application
-from connect.processors_toolkit.application.dispatcher import WithDispatcher
+from connect.processors_toolkit.router.mixin import WithRouter
 from connect.processors_toolkit.transactions.contracts import CustomEventTransaction
 
 
@@ -213,7 +213,7 @@ class GoodByeWorld(CustomEventTransaction):
         )
 
 
-class MyDummyExtension(Application, WithDispatcher):
+class MyDummyExtension(Application, WithRouter):
     def routes(self) -> Dict[str, Type]:
         # just map the event controllers
         return {
@@ -225,26 +225,21 @@ class MyDummyExtension(Application, WithDispatcher):
         # the dispatcher will take care of what custom event flow 
         # controller will be called. If no controller is available
         # a default Not Found Flow Controller will be executed.
-        return self.dispatch_custom_event(request)
+        return self.route_and_dispatch_custom_event(request)
 ```
 
 The dispatcher can also handle any other event or process of the Extension:
 
 ```python
 {
-    'asset.process.purchase': PurchaseFlow,
-    'asset.process.suspend': SuspendFlow,
-    'asset.validate.purchase': PurchaseValidationFlow,
-    'tier-config.process.setup': SetUpFlow,
-    'tier-config.validate.setup': SetUpValidationFlow,
     'product.custom-event.hello-world': HelloWorldCtrl,
     'product.custom-event.goodbye-world': GoodByeWorldCtrl,
     'product.action.sso': SSOCtrl,
 }
 ```
 
-If your controller class is using the `WithBoundedLogger` mixin the Dispatcher will execute the binding automatically on
-creating the instance of the controller.
+If your controller class is using the `WithBoundedLogger` mixin the `WithRouter` class will execute the binding 
+automatically on creating the instance of the controller.
 
 ## Class Contracts
 
