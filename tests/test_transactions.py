@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 from connect.eaas.core.responses import ProcessingResponse
 from connect.processors_toolkit.requests import RequestBuilder
-from connect.processors_toolkit.transactions import prepare, TransactionSelector
+from connect.processors_toolkit.transactions import make_middleware_callstack, TransactionSelector, TransactionExecutorMiddleware
 from connect.processors_toolkit.transactions.contracts import (
     FnProcessingTransaction,
     ProcessingTransactionStatement,
@@ -120,9 +120,11 @@ def test_transaction_selector_should_raise_exception_on_transaction_not_selected
 
 
 def tests_transaction_preparer_should_build_a_transaction_callstack_successfully():
-    transaction = prepare(CreateCustomer(), [
+    executor = TransactionExecutorMiddleware(CreateCustomer())
+    transaction = make_middleware_callstack([
         mdl_one,
         mdl_two,
+        executor
     ])
 
     response = transaction(
