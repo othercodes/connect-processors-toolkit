@@ -8,8 +8,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, List, Optional, Union
 
-from connect.processors_toolkit import find_by_id, merge
-from connect.processors_toolkit.requests.helpers import make_param, make_tier
+from connect.processors_toolkit.requests.helpers import find_by_id, make_param, make_tier, merge
 from connect.processors_toolkit.requests.exceptions import MissingParameterError
 
 

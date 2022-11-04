@@ -2,7 +2,7 @@ from logging import LoggerAdapter
 from typing import Callable
 from unittest.mock import Mock
 
-from connect.processors_toolkit.logger import ExtensionLoggerAdapter
+from connect.processors_toolkit.logger import ExtensionLoggerAdapter, mask
 from connect.processors_toolkit.logger.mixins import WithBoundedLogger
 from connect.processors_toolkit.requests import RequestBuilder
 
@@ -63,3 +63,31 @@ def test_logger_should_not_attach_id_to_message_if_not_configured():
     )
 
     logger.info(message)
+
+
+def test_mask_function_should_mask_the_required_values():
+    payload = {
+        'id': '123456',
+        'payload': {
+            'key': 'mask-this-value',
+            'users': [
+                {'id': 1, 'password': '1'},
+                {'id': 2, 'password': '22'},
+                {'id': 3, 'password': '333'}
+            ]
+        }
+    }
+
+    expected = {
+        'id': '123456',
+        'payload': {
+            'key': '***************',
+            'users': [
+                {'id': 1, 'password': '*'},
+                {'id': 2, 'password': '**'},
+                {'id': 3, 'password': '***'}
+            ]
+        }
+    }
+
+    assert mask(payload, ['key', 'password']) == expected
