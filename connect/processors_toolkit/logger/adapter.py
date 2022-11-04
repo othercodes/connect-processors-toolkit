@@ -3,8 +3,9 @@
 #
 # Copyright (c) 2022 Ingram Micro. All Rights Reserved.
 #
+from copy import deepcopy
 from logging import LoggerAdapter
-from typing import Union
+from typing import Any, Dict, List, Tuple, Union
 
 from connect.processors_toolkit.requests import RequestBuilder
 
@@ -56,3 +57,25 @@ def bind_logger(logger: LoggerAdapter, request: Union[RequestBuilder, dict]) -> 
             **{k: v for k, v in from_request.items() if v is not None},
         },
     )
+
+
+def mask(data: Union[Dict, List, Tuple, Any], to_mask: List[str]) -> Union[Dict, List, Tuple, Any]:
+    """
+    Mask the required values by key in a dictionary.
+
+    :param data: The dictionary to mask.
+    :param to_mask: The list of keys to be masked.
+    :return: The masked dictionary (it's a copy of the original).
+    """
+    if isinstance(data, dict):
+        data = deepcopy(data)
+        for key in data.keys():
+            if key in to_mask:
+                data[key] = '*' * len(str(data[key]))
+            else:
+                data[key] = mask(data[key], to_mask)
+        return data
+    elif isinstance(data, (list, tuple)):
+        return [mask(item, to_mask) for item in data]
+    else:
+        return data

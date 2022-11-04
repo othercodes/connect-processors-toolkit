@@ -1,12 +1,43 @@
 import pytest
 
-from connect.processors_toolkit.requests import RequestBuilder, request_model
+from connect.processors_toolkit.requests import RequestBuilder
+from connect.processors_toolkit.requests.helpers import request_model, merge
 
 NOTE = 'A note'
 REASON = 'A reason'
 USER_ID = 'US-123-123-123'
 USER_NAME = 'Vincent Vega'
 USER_EMAIL = 'vicent.vega@pulp.com'
+
+
+def test_merge_should_merge_complex_structures():
+    base = {
+        'id': 1,
+        'status': 'pending',
+        'asset': {
+            'status': 'active',
+            'params': [
+                {'id': 1}
+            ]
+        }
+    }
+
+    override = {
+        'asset': {
+            'status': 'suspended',
+            'params': [
+                {'id': 2}
+            ]
+        }
+    }
+
+    merged = merge(base, override)
+
+    assert merged['id'] == 1
+    assert merged['status'] == 'pending'
+    assert merged['asset']['status'] == 'suspended'
+    assert merged['asset']['params'][0]['id'] == 1
+    assert merged['asset']['params'][1]['id'] == 2
 
 
 def _shared_request_assertions(raw: dict, r: RequestBuilder):
