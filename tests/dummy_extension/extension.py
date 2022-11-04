@@ -5,22 +5,28 @@
 #
 from abc import ABC
 
+from connect.eaas.core.responses import (
+    ProcessingResponse,
+    ValidationResponse,
+    ScheduledExecutionResponse,
+)
+
 from connect.processors_toolkit.application import Application
-from connect.processors_toolkit.application.dispatcher import WithDispatcher
+from connect.processors_toolkit.router.mixin import WithRouter
 
 
-class AbstractExtension(Application, WithDispatcher, ABC):
+class AbstractExtension(Application, WithRouter, ABC):
     def process_asset_purchase_request(self, request):
-        return self.dispatch_process(request, 3600)
+        return ProcessingResponse.done()
 
     def validate_asset_purchase_request(self, request):
-        return self.dispatch_validation(request)
+        return ValidationResponse.done({})
 
     def execute_product_action(self, request):
-        return self.dispatch_action(request)
+        return self.route_and_dispatch_product_action(request)
 
     def process_product_custom_event(self, request):
-        return self.dispatch_custom_event(request)
+        return self.route_and_dispatch_custom_event(request)
 
     def execute_refresh_token_schedule(self, request):
-        return self.dispatch_schedule_process(request, 'refresh-token')
+        return ScheduledExecutionResponse.done()
