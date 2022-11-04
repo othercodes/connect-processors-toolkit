@@ -11,7 +11,7 @@ from typing import Dict, Optional, Union
 
 from connect.client import AsyncConnectClient, ConnectClient
 from connect.eaas.extension import Extension
-from connect.processors_toolkit.application.container import (  # noqa: F401
+from connect.processors_toolkit.dependency_injection.container import (  # noqa: F401
     Container,
     Dependencies,
     DependencyBuildingFailure,

@@ -9,7 +9,7 @@ from logging import LoggerAdapter
 from typing import Callable, Dict, Type, Union
 
 from connect.eaas.extension import CustomEventResponse, ProductActionResponse
-from connect.processors_toolkit.application.container import DependencyBuildingFailure
+from connect.processors_toolkit.dependency_injection.container import DependencyBuildingFailure
 from connect.processors_toolkit.router import Route, Router
 from connect.processors_toolkit.configuration.exceptions import MissingConfigurationParameterError
 from connect.processors_toolkit.requests.exceptions import MissingParameterError
