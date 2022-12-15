@@ -5,97 +5,78 @@
 #
 from __future__ import annotations
 
-import pinject
-from pinject.errors import NothingInjectableForArgError
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from enum import Enum, unique
-from typing import Any, Callable, Optional
+from pinject.bindings import BindingSpec
+from pinject.errors import NothingInjectableForArgError, WrongArgTypeError
+from pinject.object_graph import new_object_graph, ObjectGraph
+
+from connect.processors_toolkit.dependency_injection.contracts import DIContainer
+from connect.processors_toolkit.dependency_injection.exceptions import DependencyBuildingFailure, InvalidClassType
 
 
-@unique
-class BindType(Enum):
+class ServiceProvider(BindingSpec):
     TO_CLASS = 'to_class'
     TO_INSTANCE = 'to_instance'
 
+    def __init__(self, binds: Optional[Dict[str, Dict[str, Any]]] = None):
+        self.__binds: Dict[str, Dict[str, Any]] = {} if binds is None else binds
 
-class Dependencies:
-    """
-    Dependency declarations.
+    def configure(self, bind):
+        self.register()
 
-    to_class:
-        Define a dependency binding between a key to a class.
+        for name, dependency in self.__binds.items():
+            bind(name, **dependency)
+
+    def register(self):
+        """
+        Place to execute the explicit binding of your service.
+
+        def register(self):
+            self.bind_instance('foo', 'foo')
+            self.bind_class('cache', RedisCache)
+
+        The available binding methods are:
+
+        self.bind_class()
+            Define a dependency binding between a key to a class.
             > dependencies.to_class('request_builder', RequestBuilder)
 
-    to_instance:
-        Define a dependency binding the dependency key to a certain instance.
+        self.bind_instance()
+            Define a dependency binding the dependency key to a certain instance.
             > dependencies.to_class('service_api_key', 'some_api_key')
 
-    provide:
-        Define a dependency binding between a key and a provider function.
-            > dependencies.provide('my_complex_value', make_complex_value)
-            where make_complex_value is a function that will return the
-            complex value.
+        :return: None
+        """
 
-    bind:
-        Raw dependency binding.
-            dependencies.bind('service_api_key', BindType.TO_INSTANCE, 'something')
-
-    """
-
-    def __init__(self, dependencies: Optional[dict] = None):
-        self.binds = {} if dependencies is None else dependencies
-
-    def bind(self, name: str, to: BindType, thing: Any) -> Dependencies:
-        self.binds.update({name: {to.value: thing}})
+    def bind_class(self, keyword: str, concrete: Any) -> ServiceProvider:
+        self.__binds.update({keyword: {self.TO_CLASS: concrete}})
         return self
 
-    def to_class(self, name: str, thing: Any) -> Dependencies:
-        return self.bind(name, BindType.TO_CLASS, thing)
-
-    def to_instance(self, name: str, thing: Any) -> Dependencies:
-        return self.bind(name, BindType.TO_INSTANCE, thing)
-
-    def provider(self, name: str, provider: Callable):  # pragma: no cover
-        self.binds.update({name: provider})
+    def bind_instance(self, keyword: str, concrete: Any) -> ServiceProvider:
+        self.__binds.update({keyword: {self.TO_INSTANCE: concrete}})
         return self
 
 
-class DependencyBuildingFailure(Exception):
-    pass
+class Container(DIContainer):
+    def __init__(self, providers: List[Type[ServiceProvider]]):
+        def __make_container() -> ObjectGraph:
+            return new_object_graph(
+                binding_specs=[provider() for provider in providers],
+                # disable the auto-search for implicit bindings.
+                modules=None,
+            )
 
+        self.__container: Union[ObjectGraph, Callable[[], ObjectGraph]] = __make_container
 
-class Container:
-    """
-    Dependency Container based in the PInject project.
-    """
-
-    def __init__(self, dependencies: Dependencies):
-        class __DISpec(pinject.BindingSpec):
-            def __init__(self, _dependencies: Dependencies):
-                self.__dependencies = _dependencies
-
-            def configure(self, bind):
-                for name, dependency in self.__dependencies.binds.items():
-                    if isinstance(dependency, Callable):
-                        setattr(self.__class__, f'provide_{name}', dependency)
-                    else:
-                        bind(name, **dependency)
-
-        self.__container = pinject.new_object_graph(
-            binding_specs=[__DISpec(dependencies)],
-            # disable the auto-search for implicit bindings.
-            modules=None,
-        )
-
-    @staticmethod
-    def deferred() -> Callable[[Dependencies], Container]:
-        def __make_container(dependencies: Dependencies) -> Container:
-            return Container(dependencies)
-
-        return __make_container
-
-    def get(self, cls) -> Any:
+    def get(self, cls: Type) -> Any:
         try:
+            if callable(self.__container):
+                self.__container = self.__container()
             return self.__container.provide(cls)
+
         except NothingInjectableForArgError as e:
             raise DependencyBuildingFailure(str(e))
+
+        except WrongArgTypeError as e:
+            raise InvalidClassType(str(e))
